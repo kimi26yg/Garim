@@ -51,6 +51,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           'candidate': candidate.candidate,
           'sdpMid': candidate.sdpMid,
           'sdpMLineIndex': candidate.sdpMLineIndex,
+          'roomId': ref.read(socketProvider).roomId, // Include roomId
         });
       }
     });

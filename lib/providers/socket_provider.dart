@@ -55,6 +55,7 @@ class SocketState {
   final double serverFps;
   final double serverInferenceTime;
   final String serverUrl;
+  final String roomId; // New
   final bool isMosaicActive;
   final bool isBeautyActive;
   final Uint8List? processedImage;
@@ -67,6 +68,7 @@ class SocketState {
     this.serverFps = 0.0,
     this.serverInferenceTime = 0.0,
     this.serverUrl = 'http://192.168.45.206:3000',
+    this.roomId = 'garim_room',
     this.isMosaicActive = false,
     this.isBeautyActive = false,
     this.processedImage,
@@ -80,6 +82,7 @@ class SocketState {
     double? serverFps,
     double? serverInferenceTime,
     String? serverUrl,
+    String? roomId,
     bool? isMosaicActive,
     bool? isBeautyActive,
     Uint8List? processedImage,
@@ -92,6 +95,7 @@ class SocketState {
         serverFps: serverFps ?? this.serverFps,
         serverInferenceTime: serverInferenceTime ?? this.serverInferenceTime,
         serverUrl: serverUrl ?? this.serverUrl,
+        roomId: roomId ?? this.roomId,
         isMosaicActive: isMosaicActive ?? this.isMosaicActive,
         isBeautyActive: isBeautyActive ?? this.isBeautyActive,
         processedImage: processedImage ?? this.processedImage);
@@ -188,8 +192,8 @@ class SocketNotifier extends Notifier<SocketState> {
       _addLog("[SOCKET] Connected to signaling server at ${state.serverUrl}");
 
       // Join the matching room
-      _socket.emit('join', {'roomId': 'garim_room'});
-      _addLog("[SOCKET] Joined room: garim_room");
+      _socket.emit('join', {'roomId': state.roomId});
+      _addLog("[SOCKET] Joined room: ${state.roomId}");
     });
 
     _socket.onDisconnect((_) {

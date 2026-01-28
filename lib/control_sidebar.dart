@@ -116,9 +116,10 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () {
-                ref
-                    .read(webRTCProvider.notifier)
-                    .startCall(socketNotifier.socket);
+                ref.read(webRTCProvider.notifier).startCall(
+                      socketNotifier.socket,
+                      socketState.roomId,
+                    );
               },
               icon: const Icon(Icons.video_call),
               label: const Text("START VIDEO CALL"),
@@ -192,14 +193,10 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
             // Deepfake Start/Stop
             ElevatedButton(
               onPressed: () {
-                final isActive = socketState.isDeepfakeActive;
-                socketNotifier.setDeepfakeActive(!isActive);
-                if (!isActive) {
-                  _captureAndEmit(context, ref);
-                }
+                ref.read(webRTCProvider.notifier).toggleDeepfake();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: socketState.isDeepfakeActive
+                backgroundColor: ref.watch(webRTCProvider).isDeepfakeActive
                     ? Colors.redAccent
                     : Theme.of(context).colorScheme.secondary,
                 foregroundColor: Colors.black,
@@ -208,7 +205,7 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
                     borderRadius: BorderRadius.circular(4)),
               ),
               child: Text(
-                socketState.isDeepfakeActive
+                ref.watch(webRTCProvider).isDeepfakeActive
                     ? "⚠ DEEPFAKE STOP ⚠"
                     : "⚠ DEEPFAKE START ⚠",
                 style: const TextStyle(
@@ -226,8 +223,9 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
                   child: _buildToggleButton(
                     context: context,
                     label: "MOSAIC [STRESS]",
-                    isActive: socketState.isMosaicActive,
-                    onPressed: () => socketNotifier.toggleMosaic(),
+                    isActive: ref.watch(webRTCProvider).isMosaicActive,
+                    onPressed: () =>
+                        ref.read(webRTCProvider.notifier).toggleMosaic(),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -235,8 +233,9 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
                   child: _buildToggleButton(
                     context: context,
                     label: "BEAUTY [MDPIPE]",
-                    isActive: socketState.isBeautyActive,
-                    onPressed: () => socketNotifier.toggleBeauty(),
+                    isActive: ref.watch(webRTCProvider).isBeautyActive,
+                    onPressed: () =>
+                        ref.read(webRTCProvider.notifier).toggleBeauty(),
                   ),
                 ),
               ],
