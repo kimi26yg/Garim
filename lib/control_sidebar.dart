@@ -111,27 +111,67 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
             children: [
               ...List.generate(9, (index) => index + 1)
                   .map((e) => _buildNumpadButton(context, e.toString())),
-              _buildActionButton(context, "CLR", Colors.redAccent, () {
-                _targetController.clear();
-                setState(() {});
-              }),
-              _buildNumpadButton(context, "0"),
-              _buildActionButton(context, "CALL", Colors.greenAccent, () {
-                final socketNotifier = ref.read(socketProvider.notifier);
-                final targetPhone =
-                    _formatRawPhoneNumber(_targetController.text);
-                if (targetPhone.length == 11) {
-                  ref.read(webRTCProvider.notifier).requestCall(
-                        socketNotifier.socket,
-                        targetPhone,
-                        socketState.myPhoneNumber,
+              _buildActionButton(
+                  context,
+                  ref.watch(webRTCProvider).callStatus == CallStatus.connecting
+                      ? "CANCEL"
+                      : "CLR",
+                  Colors.redAccent, () {
+                if (ref.read(webRTCProvider).callStatus ==
+                    CallStatus.connecting) {
+                  // Cancel Action
+                  ref.read(webRTCProvider.notifier).cancelCall(
+                        ref.read(socketProvider.notifier),
                       );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("INVALID NUMBER LENGTH")),
-                  );
+                  // Clear Action
+                  _targetController.clear();
+                  setState(() {});
                 }
               }),
+              _buildNumpadButton(context, "0"),
+              _buildActionButton(
+                  context,
+                  ref.watch(webRTCProvider).callStatus == CallStatus.connected
+                      ? "END"
+                      : "CALL",
+                  ref.watch(webRTCProvider).callStatus == CallStatus.connected
+                      ? Colors.redAccent
+                      : (ref.watch(webRTCProvider).callStatus ==
+                              CallStatus.connecting
+                          ? Colors.grey
+                          : Colors.greenAccent),
+                  ref.watch(webRTCProvider).callStatus == CallStatus.connecting
+                      ? null
+                      : () {
+                          final webRTCNotifier =
+                              ref.read(webRTCProvider.notifier);
+                          final socketNotifier =
+                              ref.read(socketProvider.notifier);
+                          final callStatus =
+                              ref.read(webRTCProvider).callStatus;
+
+                          if (callStatus == CallStatus.connected) {
+                            webRTCNotifier.endCall(socketNotifier);
+                          } else {
+                            final targetPhone =
+                                _formatRawPhoneNumber(_targetController.text);
+                            if (targetPhone.length == 11) {
+                              webRTCNotifier.requestCall(
+                                socketNotifier,
+                                targetPhone,
+                                socketState.myPhoneNumber,
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("INVALID NUMBER LENGTH")),
+                              );
+                            }
+                          }
+                        },
+                  isLoading: ref.watch(webRTCProvider).callStatus ==
+                      CallStatus.connecting),
             ],
           ),
         ],
@@ -186,25 +226,38 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
     );
   }
 
-  Widget _buildActionButton(
-      BuildContext context, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(BuildContext context, String label, Color color,
+      VoidCallback? onTap, // Nullable for disabled state
+      {bool isLoading = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: onTap == null ? Colors.grey[900] : color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(
+            color: onTap == null
+                ? Colors.grey[800]!
+                : color.withValues(alpha: 0.5)),
       ),
       child: InkWell(
         onTap: onTap,
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-                color: color,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Courier'),
-          ),
+          child: isLoading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color,
+                  ),
+                )
+              : Text(
+                  label,
+                  style: TextStyle(
+                      color: onTap == null ? Colors.grey : color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Courier'),
+                ),
         ),
       ),
     );

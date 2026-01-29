@@ -139,7 +139,7 @@ class SocketNotifier extends Notifier<SocketState> {
     return SocketState(myPhoneNumber: myPhone);
   }
 
-  void _addLog(String msg) {
+  void addLog(String msg) {
     final newLogs = List<String>.from(state.logs)..add(msg);
     if (newLogs.length > 100) newLogs.removeAt(0); // Limit to 100
     state = state.copyWith(logs: newLogs);
@@ -152,7 +152,7 @@ class SocketNotifier extends Notifier<SocketState> {
   void setServerUrl(String url) {
     if (state.serverUrl == url) return;
 
-    _addLog("[SYSTEM] Changing Server URL to: $url");
+    addLog("[SYSTEM] Changing Server URL to: $url");
     state = state.copyWith(serverUrl: url, isConnected: false);
 
     // Disconnect old socket
@@ -168,12 +168,12 @@ class SocketNotifier extends Notifier<SocketState> {
 
   void toggleMosaic() {
     state = state.copyWith(isMosaicActive: !state.isMosaicActive);
-    _addLog("[SYSTEM] Mosaic Effect: ${state.isMosaicActive ? 'ON' : 'OFF'}");
+    addLog("[SYSTEM] Mosaic Effect: ${state.isMosaicActive ? 'ON' : 'OFF'}");
   }
 
   void toggleBeauty() {
     state = state.copyWith(isBeautyActive: !state.isBeautyActive);
-    _addLog("[SYSTEM] Beauty Effect: ${state.isBeautyActive ? 'ON' : 'OFF'}");
+    addLog("[SYSTEM] Beauty Effect: ${state.isBeautyActive ? 'ON' : 'OFF'}");
   }
 
   void _initSocket([String? overrideUrl]) {
@@ -201,24 +201,24 @@ class SocketNotifier extends Notifier<SocketState> {
     _socket.onConnect((_) {
       _reconnectTimer?.cancel();
       state = state.copyWith(isConnected: true);
-      _addLog("[SOCKET] Connected to signaling server at ${state.serverUrl}");
+      addLog("[SOCKET] Connected to signaling server at ${state.serverUrl}");
 
       // Join the matching room
-      _socket.emit('join', {'roomId': state.roomId});
+      _socket.emit('join', {'room': state.roomId});
 
       // Virtual Number Registration
       if (state.myPhoneNumber != null) {
         _socket.emit('register:phone', {'phoneNumber': state.myPhoneNumber});
-        _addLog("[SOCKET] Registered Virtual Number: ${state.myPhoneNumber}");
+        addLog("[SOCKET] Registered Virtual Number: ${state.myPhoneNumber}");
       }
 
-      _addLog("[SOCKET] Joined room: ${state.roomId}");
+      addLog("[SOCKET] Joined room: ${state.roomId}");
     });
 
     _socket.onDisconnect((_) {
       _isProcessing = false; // Reset processing flag
       state = state.copyWith(isConnected: false);
-      _addLog("[SOCKET] Disconnected. Reconnecting in 3s...");
+      addLog("[SOCKET] Disconnected. Reconnecting in 3s...");
 
       _reconnectTimer?.cancel();
       _reconnectTimer = Timer(const Duration(seconds: 3), () {
@@ -229,12 +229,12 @@ class SocketNotifier extends Notifier<SocketState> {
 
     _socket.onConnectError((data) {
       _isProcessing = false; // Reset
-      _addLog("[SOCKET] Connection Error: $data");
+      addLog("[SOCKET] Connection Error: $data");
     });
 
     _socket.onError((data) {
       _isProcessing = false; // Reset
-      _addLog("[SOCKET] Transport Error: $data");
+      addLog("[SOCKET] Transport Error: $data");
     });
 
     _socket.on('attack_complete', _handleAttackComplete);
@@ -259,9 +259,9 @@ class SocketNotifier extends Notifier<SocketState> {
   void emit(String event, dynamic data) {
     if (_socket.connected) {
       _socket.emit(event, data);
-      _addLog("[CMD] Emitted: $event");
+      addLog("[CMD] Emitted: $event");
     } else {
-      _addLog("[ERROR] Cannot emit $event - Disconnected");
+      addLog("[ERROR] Cannot emit $event - Disconnected");
     }
   }
 
@@ -271,15 +271,15 @@ class SocketNotifier extends Notifier<SocketState> {
 
   void resetSourceUploadedStatus() {
     _isSourceUploaded = false;
-    _addLog("[SYSTEM] Source Identity Changed. Will re-upload.");
+    addLog("[SYSTEM] Source Identity Changed. Will re-upload.");
   }
 
   void setDeepfakeActive(bool isActive) {
     state = state.copyWith(isDeepfakeActive: isActive);
     if (!isActive) {
-      _addLog("[SYSTEM] Deepfake Deactivated.");
+      addLog("[SYSTEM] Deepfake Deactivated.");
     } else {
-      _addLog("[SYSTEM] Deepfake ACTIVATED. Starting loop...");
+      addLog("[SYSTEM] Deepfake ACTIVATED. Starting loop...");
     }
   }
 
@@ -290,7 +290,7 @@ class SocketNotifier extends Notifier<SocketState> {
 
       if (data is List) {
         if (data.isEmpty) {
-          _addLog("[ERROR] Empty data list received");
+          addLog("[ERROR] Empty data list received");
           if (kDebugMode) print("[Socket] Received empty list from server");
           return;
         }
@@ -306,7 +306,7 @@ class SocketNotifier extends Notifier<SocketState> {
         payload = {'image': data};
         if (kDebugMode) print("[Socket] Wrapped string data in Map");
       } else {
-        _addLog("[ERROR] Unknown data type: ${data.runtimeType}");
+        addLog("[ERROR] Unknown data type: ${data.runtimeType}");
         if (kDebugMode)
           print("[Socket] Unexpected data type: ${data.runtimeType}");
         return;
@@ -408,13 +408,13 @@ class SocketNotifier extends Notifier<SocketState> {
           final Uint8List bytes = await compute(decodeImageTask, cleanBase64);
           if (bytes.isNotEmpty) {
             state = state.copyWith(processedImage: bytes);
-            _addLog("[UI] Frame Updated");
+            addLog("[UI] Frame Updated");
           } else {
-            _addLog("[ERROR] Received empty image data");
+            addLog("[ERROR] Received empty image data");
             if (kDebugMode) print("[Decode] Empty bytes after decoding");
           }
         } catch (e) {
-          _addLog("[ERROR] Image decode failed: ${e.toString()}");
+          addLog("[ERROR] Image decode failed: ${e.toString()}");
           if (kDebugMode) {
             print("[Decode] Error decoding image: $e");
             print("[Decode] Base64 length: ${base64Str.length}");
@@ -423,7 +423,7 @@ class SocketNotifier extends Notifier<SocketState> {
       }
     } catch (e, stackTrace) {
       // Catch-all for any unexpected errors in _handleAttackComplete
-      _addLog("[ERROR] Attack complete handler failed: ${e.toString()}");
+      addLog("[ERROR] Attack complete handler failed: ${e.toString()}");
       if (kDebugMode) {
         print("[CRITICAL] _handleAttackComplete error: $e");
         print("[CRITICAL] Stack trace: $stackTrace");
@@ -444,7 +444,7 @@ class SocketNotifier extends Notifier<SocketState> {
 
     state = state.copyWith(latencyHistory: newHistory);
     // Optional: Log latency occasionally or just rely on graph
-    // _addLog("[LATENCY] ${latency}ms");
+    // addLog("[LATENCY] ${latency}ms");
   }
 
   Future<void> emitDeepfake({
@@ -452,7 +452,7 @@ class SocketNotifier extends Notifier<SocketState> {
     required Uint8List targetBytes,
   }) async {
     if (!_socket.connected) {
-      _addLog("[ERROR] Cannot emit deepfake - Disconnected");
+      addLog("[ERROR] Cannot emit deepfake - Disconnected");
       return;
     }
 
@@ -477,14 +477,14 @@ class SocketNotifier extends Notifier<SocketState> {
         payload['source_image'] = sourceBase64;
         payload['image'] = sourceBase64;
         _isSourceUploaded = true;
-        _addLog("[SOCKET] Sending FULL Payload (Source + Target)");
+        addLog("[SOCKET] Sending FULL Payload (Source + Target)");
         if (kDebugMode) {
           print(
               '[Socket] FULL Payload - Source: ${sourceBytes.length} -> ${sourceBase64.length}, Target: ${targetBytes.length} -> ${targetBase64.length}');
         }
       } else {
         // Subsequent frames: Target only (source already uploaded)
-        _addLog("[SOCKET] Sending LIGHT Payload (Target only)");
+        addLog("[SOCKET] Sending LIGHT Payload (Target only)");
         if (kDebugMode) {
           print(
               '[Socket] LIGHT Payload - Target only: ${targetBytes.length} -> ${targetBase64.length}');
@@ -498,7 +498,7 @@ class SocketNotifier extends Notifier<SocketState> {
       _timeoutTimer?.cancel();
       _timeoutTimer = Timer(const Duration(seconds: 10), () {
         if (_isProcessing) {
-          _addLog("[TIMEOUT] No response in 3s - Retrying");
+          addLog("[TIMEOUT] No response in 3s - Retrying");
           if (kDebugMode) {
             print("[Watchdog] Timeout detected - forcing retry");
           }
@@ -510,7 +510,7 @@ class SocketNotifier extends Notifier<SocketState> {
       if (kDebugMode) {
         print("[Socket] Error in emitDeepfake: $e");
       }
-      _addLog("[ERROR] Deepfake Emit Failed");
+      addLog("[ERROR] Deepfake Emit Failed");
     } finally {
       // Don't reset _isProcessing here - let timeout or response handle it
       // _isProcessing = false;

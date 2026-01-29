@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../video_processor.dart';
+import 'socket_provider.dart';
 
 // Top-level function for compute
 Future<Uint8List> decodeImageTask(String base64Str) async {
@@ -21,6 +22,13 @@ Future<Uint8List> decodeImageTask(String base64Str) async {
 }
 
 final videoKeyProvider = Provider((ref) => GlobalKey());
+
+enum CallStatus {
+  idle,
+  connecting,
+  connected,
+  failed,
+}
 
 class WebRTCState {
   final bool isCameraReady;
@@ -37,6 +45,13 @@ class WebRTCState {
   // Stability States
   final bool isAutoplayBlocked;
 
+  // Call Status
+  final CallStatus callStatus;
+
+  // ID storage for signaling
+  final String? myPhoneNumber;
+  final String? targetPhoneNumber;
+
   WebRTCState({
     required this.isCameraReady,
     required this.localRenderer,
@@ -47,6 +62,9 @@ class WebRTCState {
     this.isMosaicActive = false,
     this.isBeautyActive = false,
     this.isAutoplayBlocked = false,
+    this.callStatus = CallStatus.idle,
+    this.myPhoneNumber,
+    this.targetPhoneNumber,
   });
 
   WebRTCState copyWith({
@@ -59,6 +77,9 @@ class WebRTCState {
     bool? isMosaicActive,
     bool? isBeautyActive,
     bool? isAutoplayBlocked,
+    CallStatus? callStatus,
+    String? myPhoneNumber,
+    String? targetPhoneNumber,
   }) {
     return WebRTCState(
       isCameraReady: isCameraReady ?? this.isCameraReady,
@@ -70,6 +91,9 @@ class WebRTCState {
       isMosaicActive: isMosaicActive ?? this.isMosaicActive,
       isBeautyActive: isBeautyActive ?? this.isBeautyActive,
       isAutoplayBlocked: isAutoplayBlocked ?? this.isAutoplayBlocked,
+      callStatus: callStatus ?? this.callStatus,
+      myPhoneNumber: myPhoneNumber ?? this.myPhoneNumber,
+      targetPhoneNumber: targetPhoneNumber ?? this.targetPhoneNumber,
     );
   }
 }
@@ -79,6 +103,7 @@ final videoProcessorProvider = Provider.autoDispose((ref) => VideoProcessor());
 class WebRTCNotifier extends Notifier<WebRTCState> {
   VideoProcessor? _processor;
   Timer? _debounceTimer;
+  Timer? _callTimeoutTimer; // For call connection timeout
 
   @override
   WebRTCState build() {
@@ -90,6 +115,7 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
 
     ref.onDispose(() {
       _debounceTimer?.cancel();
+      _callTimeoutTimer?.cancel();
       state.localRenderer.srcObject?.dispose();
       state.localRenderer.dispose();
       state.remoteRenderer.srcObject?.dispose();
@@ -336,11 +362,16 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
 
       final status = data['status'];
       if (status == 'accepted') {
-        final targetId = data['from']; // Confirmed target ID
-        _createOffer(socket, targetId);
+        _callTimeoutTimer?.cancel();
+        state =
+            state.copyWith(callStatus: CallStatus.connected); // Update status
+        // With Protocol v1.1 unification, we rely on stored targetPhoneNumber
+        // or ensure 'from' is the phone number.
+        // Assuming server relays strict "from" as phone number or we just use what we requested.
+        _createOffer(socket);
       } else {
         print("[Protocol v1.1] Call Rejected or Busy: $status");
-        _hangUp();
+        _handleCallFailed();
       }
     });
 
@@ -362,26 +393,95 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
     });
   }
 
-  Future<void> requestCall(
-      IO.Socket socket, String targetPhoneNumber, String? myPhoneNumber) async {
+  Future<void> requestCall(SocketNotifier socketNotifier,
+      String targetPhoneNumber, String? myPhoneNumber) async {
+    final socket = socketNotifier.socket;
     if (state.peerConnection == null) await _createPeerConnection();
 
     // Reset state just in case
     // Protocol v1.1 Step 1: Send call:request with Phone Numbers
     final payload = {
       'to': targetPhoneNumber, // Target Phone Number
-      'fromPhone': myPhoneNumber, // My Phone Number
+      'from': myPhoneNumber, // My Phone Number
       'callerName': 'GEYE_ADMIN',
       'room': 'GEYE_SESSION_SECURE',
     };
 
     print(
         "[Protocol v1.1] Sending call:request -> $targetPhoneNumber (My: $myPhoneNumber)");
+    socketNotifier.addLog("SIGNAL OUTGOING: Calling $targetPhoneNumber...");
+
+    // Store IDs in state for future signaling
+    state = state.copyWith(
+      callStatus: CallStatus.connecting,
+      myPhoneNumber: myPhoneNumber,
+      targetPhoneNumber: targetPhoneNumber,
+    );
+
+    _callTimeoutTimer?.cancel();
+    _callTimeoutTimer = Timer(const Duration(seconds: 15), () {
+      if (state.callStatus == CallStatus.connecting) {
+        print("[Call] Timeout! No answer after 15s.");
+        _handleCallFailed();
+      }
+    });
+
     socket.emit('call:request', payload);
   }
 
-  Future<void> _createOffer(IO.Socket socket, String targetId) async {
+  void endCall(SocketNotifier socketNotifier) {
+    print("[Protocol v1.1] User initiated Hangup.");
+    socketNotifier.addLog("SIGNAL OUTGOING: Ending Call...");
+    socketNotifier.emit('call:hangup', {
+      'from': state.myPhoneNumber,
+      'to': state.targetPhoneNumber,
+      'reason': 'hangup'
+    });
+    _hangUp(); // Perform local cleanup
+  }
+
+  void cancelCall(SocketNotifier socketNotifier) {
+    print("[Protocol v1.1] User Cancelled Call.");
+    socketNotifier.addLog("SIGNAL OUTGOING: Call Cancelled");
+
+    // Stop timeout timer
+    _callTimeoutTimer?.cancel();
+    _callTimeoutTimer = null;
+
+    // Reset status to idle immediately. Keep numbers for a moment or clear?
+    // We'll keep them until cleanup.
+    state = state.copyWith(callStatus: CallStatus.idle);
+
+    // Notify server just in case signal went through
+    socketNotifier.emit('call:hangup', {
+      'from': state.myPhoneNumber,
+      'to': state.targetPhoneNumber,
+      'reason': 'cancel'
+    });
+
+    // Ensure cleanup
+    _hangUp();
+  }
+
+  void _handleCallFailed() {
+    state = state.copyWith(callStatus: CallStatus.failed);
+    // Revert to idle after short delay to show failed state
+    Future.delayed(const Duration(seconds: 2), () {
+      state = state.copyWith(callStatus: CallStatus.idle);
+    });
+  }
+
+  Future<void> _createOffer(IO.Socket socket) async {
     if (state.peerConnection == null) return;
+
+    final myPhone = state.myPhoneNumber;
+    final targetPhone = state.targetPhoneNumber;
+
+    if (myPhone == null || targetPhone == null) {
+      print("[WebRTC] Error: Missing Phone Numbers for signaling");
+      return;
+    }
+
     try {
       RTCSessionDescription offer = await state.peerConnection!.createOffer();
 
@@ -392,35 +492,29 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
 
       await state.peerConnection!.setLocalDescription(newOffer);
 
-      // Protocol v1.1 Step 3: Send webrtc:offer
+      // Protocol v1.1 Step 3: Send webrtc:offer w/ Phone Numbers
       final payload = {
-        'from': socket.id,
-        'to': targetId, // MUST include 'to'
+        'from': myPhone,
+        'to': targetPhone,
         'sdp': newOffer.sdp,
-        'type': newOffer.type, // Helper: often needed by receiver
+        'type': newOffer.type,
       };
 
-      print("[Protocol v1.1] Sending webrtc:offer -> $targetId");
+      print("[Protocol v1.1] Sending webrtc:offer -> $targetPhone");
       socket.emit('webrtc:offer', payload);
 
       // Setup ICE candidate hook to send via correct protocol
       _onIceCandidate = (candidate) {
         if (candidate.candidate == null) return;
         final icePayload = {
-          'from': socket.id,
-          'to': targetId,
+          'from': myPhone,
+          'to': targetPhone,
           'candidate': {
-            // Nesting as per 'candidate: ice' instruction or object?
-            // Prompt says: "{ from: myId, to: targetId, candidate: ice }"
-            // 'ice' usually refers to the candidate dictionary or string.
-            // WebRTC standard exchange usually sends the candidate object.
             'candidate': candidate.candidate,
             'sdpMid': candidate.sdpMid,
             'sdpMLineIndex': candidate.sdpMLineIndex,
           }
         };
-        // Simplify if the other side expects just the Dict as 'candidate'
-        // But prompt say "candidate: ice". I'll wrap the candidate object.
         print("[Protocol v1.1] Sending webrtc:ice");
         socket.emit('webrtc:ice', icePayload);
       };
@@ -477,10 +571,11 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
     state.peerConnection?.close();
     state.remoteRenderer.srcObject = null;
 
-    // Re-create peer connection for next call?
-    // Usually better to dispose and wait, but we'll re-init if needed.
-    // For now, just close and reset state.
-    state = state.copyWith(remoteRenderer: state.remoteRenderer);
+    // Reset Status
+    state = state.copyWith(
+      remoteRenderer: state.remoteRenderer,
+      callStatus: CallStatus.idle,
+    );
 
     // Re-initialize peer connection for future calls
     _createPeerConnection();

@@ -107,15 +107,52 @@ class VideoFeedSection extends ConsumerWidget {
                                 .RTCVideoViewObjectFitCover,
                           )
                         : Center(
-                            child: Text(
-                              "TARGET\n(WAITING)",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: webRTCState.callStatus ==
+                                    CallStatus.connecting
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        "CONNECTING...",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Text(
+                                    webRTCState.callStatus == CallStatus.failed
+                                        ? "CONNECTION\nFAILED"
+                                        : "TARGET\n(WAITING)",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: webRTCState.callStatus ==
+                                              CallStatus.failed
+                                          ? Colors.redAccent
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                   ),
                 ),
