@@ -352,44 +352,86 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
   // Signaling Callbacks
   Function(RTCIceCandidate)? _onIceCandidate;
 
+  // --- Helper: Robust Data Parsing ---
+  dynamic _parseSocketData(dynamic data) {
+    if (data == null) return null;
+    try {
+      if (data is List) {
+        if (data.isEmpty) return null;
+        return _parseSocketData(data.first); // Recursively unwrap if needed
+      }
+      if (data is String) {
+        return jsonDecode(data);
+      }
+      return data;
+    } catch (e) {
+      print("[WebRTC] Error parsing socket data: $e");
+      return null;
+    }
+  }
+
   // --- Protocol v1.1 Signaling ---
 
   void setupSignalListeners(IO.Socket socket) {
     // 1. Handshake Response
     socket.on('call:response', (data) {
-      if (data == null) return;
-      print("[Protocol v1.1] Received call:response: $data");
+      try {
+        final payload = _parseSocketData(data);
+        if (payload == null) return;
 
-      final status = data['status'];
-      if (status == 'accepted') {
-        _callTimeoutTimer?.cancel();
-        state =
-            state.copyWith(callStatus: CallStatus.connected); // Update status
-        // With Protocol v1.1 unification, we rely on stored targetPhoneNumber
-        // or ensure 'from' is the phone number.
-        // Assuming server relays strict "from" as phone number or we just use what we requested.
-        _createOffer(socket);
-      } else {
-        print("[Protocol v1.1] Call Rejected or Busy: $status");
-        _handleCallFailed();
+        print("[Protocol v1.1] Received call:response: $payload");
+
+        final status = payload['status'];
+        if (status == 'accepted') {
+          _callTimeoutTimer?.cancel();
+          state =
+              state.copyWith(callStatus: CallStatus.connected); // Update status
+          // With Protocol v1.1 unification, we rely on stored targetPhoneNumber
+          // or ensure 'from' is the phone number.
+          _createOffer(socket);
+        } else {
+          print("[Protocol v1.1] Call Rejected or Busy: $status");
+          _handleCallFailed();
+        }
+      } catch (e) {
+        print("[WebRTC] Error processing call:response: $e");
       }
     });
 
     // 2. Remote Answer (Standard WebRTC)
     socket.on('webrtc:answer', (data) async {
-      print("[Protocol v1.1] Received webrtc:answer");
-      await _handleAnswer(data);
+      try {
+        final payload = _parseSocketData(data);
+        if (payload == null) return;
+
+        print("[Protocol v1.1] Received webrtc:answer");
+        await _handleAnswer(payload);
+      } catch (e) {
+        print("[WebRTC] Error processing webrtc:answer: $e");
+      }
     });
 
     // 3. ICE Candidates
     socket.on('webrtc:ice', (data) async {
-      await _handleCandidate(data);
+      try {
+        final payload = _parseSocketData(data);
+        if (payload == null) return;
+
+        await _handleCandidate(payload);
+      } catch (e) {
+        print("[WebRTC] Error processing webrtc:ice: $e");
+      }
     });
 
     // 4. Remote Hangup
-    socket.on('call:hangup', (_) {
-      print("[Protocol v1.1] Received call:hangup");
-      _hangUp();
+    socket.on('call:hangup', (data) {
+      try {
+        final payload = _parseSocketData(data);
+        print("[Protocol v1.1] Received call:hangup: $payload");
+        _hangUp();
+      } catch (e) {
+        print("[WebRTC] Error processing call:hangup: $e");
+      }
     });
   }
 
