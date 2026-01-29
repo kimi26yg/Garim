@@ -281,28 +281,7 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
     }
   }
 
-  Future<void> startCall(IO.Socket socket, String roomId) async {
-    if (state.peerConnection == null) return;
-    try {
-      RTCSessionDescription offer = await state.peerConnection!.createOffer();
-
-      String sdp = offer.sdp!;
-      sdp = _preferCodec(sdp, 'H264');
-      RTCSessionDescription newOffer = RTCSessionDescription(sdp, offer.type);
-
-      await state.peerConnection!.setLocalDescription(newOffer);
-
-      print("[WebRTC] Sending Offer to room: $roomId (Preferring H.264)");
-      socket.emit('offer', {
-        'sdp': newOffer.sdp,
-        'type': newOffer.type,
-        'roomId': roomId,
-      });
-    } catch (e) {
-      print("[WebRTC] Error starting call: $e");
-    }
-  }
-
+  // Helper: Prefer Codec (Restored)
   String _preferCodec(String sdp, String codec) {
     var lines = sdp.split('\r\n');
     int mLineIndex = -1;
@@ -346,78 +325,165 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
 
   // Signaling Callbacks
   Function(RTCIceCandidate)? _onIceCandidate;
-  void setOnIceCandidate(Function(RTCIceCandidate) callback) {
-    _onIceCandidate = callback;
+
+  // --- Protocol v1.1 Signaling ---
+
+  void setupSignalListeners(IO.Socket socket) {
+    // 1. Handshake Response
+    socket.on('call:response', (data) {
+      if (data == null) return;
+      print("[Protocol v1.1] Received call:response: $data");
+
+      final status = data['status'];
+      if (status == 'accepted') {
+        final targetId = data['from']; // Confirmed target ID
+        _createOffer(socket, targetId);
+      } else {
+        print("[Protocol v1.1] Call Rejected or Busy: $status");
+        _hangUp();
+      }
+    });
+
+    // 2. Remote Answer (Standard WebRTC)
+    socket.on('webrtc:answer', (data) async {
+      print("[Protocol v1.1] Received webrtc:answer");
+      await _handleAnswer(data);
+    });
+
+    // 3. ICE Candidates
+    socket.on('webrtc:ice', (data) async {
+      await _handleCandidate(data);
+    });
+
+    // 4. Remote Hangup
+    socket.on('call:hangup', (_) {
+      print("[Protocol v1.1] Received call:hangup");
+      _hangUp();
+    });
   }
 
-  // Signaling Handlers
-  Future<void> handleOffer(
-      Map<String, dynamic> offerData, IO.Socket socket) async {
+  Future<void> requestCall(
+      IO.Socket socket, String targetPhoneNumber, String? myPhoneNumber) async {
+    if (state.peerConnection == null) await _createPeerConnection();
+
+    // Reset state just in case
+    // Protocol v1.1 Step 1: Send call:request with Phone Numbers
+    final payload = {
+      'to': targetPhoneNumber, // Target Phone Number
+      'fromPhone': myPhoneNumber, // My Phone Number
+      'callerName': 'GEYE_ADMIN',
+      'room': 'GEYE_SESSION_SECURE',
+    };
+
+    print(
+        "[Protocol v1.1] Sending call:request -> $targetPhoneNumber (My: $myPhoneNumber)");
+    socket.emit('call:request', payload);
+  }
+
+  Future<void> _createOffer(IO.Socket socket, String targetId) async {
     if (state.peerConnection == null) return;
-
     try {
-      RTCSessionDescription description =
-          RTCSessionDescription(offerData['sdp'], offerData['type']);
-      await state.peerConnection!.setRemoteDescription(description);
+      RTCSessionDescription offer = await state.peerConnection!.createOffer();
 
-      RTCSessionDescription answer = await state.peerConnection!.createAnswer();
-      await state.peerConnection!.setLocalDescription(answer);
+      // Prefer H.264 if possible
+      String sdp = offer.sdp!;
+      sdp = _preferCodec(sdp, 'H264');
+      RTCSessionDescription newOffer = RTCSessionDescription(sdp, offer.type);
 
-      String roomId = offerData['roomId'] ?? 'garim_room';
-      socket.emit('answer', {
-        'sdp': answer.sdp,
-        'type': answer.type,
-        'roomId': roomId,
-      });
+      await state.peerConnection!.setLocalDescription(newOffer);
+
+      // Protocol v1.1 Step 3: Send webrtc:offer
+      final payload = {
+        'from': socket.id,
+        'to': targetId, // MUST include 'to'
+        'sdp': newOffer.sdp,
+        'type': newOffer.type, // Helper: often needed by receiver
+      };
+
+      print("[Protocol v1.1] Sending webrtc:offer -> $targetId");
+      socket.emit('webrtc:offer', payload);
+
+      // Setup ICE candidate hook to send via correct protocol
+      _onIceCandidate = (candidate) {
+        if (candidate.candidate == null) return;
+        final icePayload = {
+          'from': socket.id,
+          'to': targetId,
+          'candidate': {
+            // Nesting as per 'candidate: ice' instruction or object?
+            // Prompt says: "{ from: myId, to: targetId, candidate: ice }"
+            // 'ice' usually refers to the candidate dictionary or string.
+            // WebRTC standard exchange usually sends the candidate object.
+            'candidate': candidate.candidate,
+            'sdpMid': candidate.sdpMid,
+            'sdpMLineIndex': candidate.sdpMLineIndex,
+          }
+        };
+        // Simplify if the other side expects just the Dict as 'candidate'
+        // But prompt say "candidate: ice". I'll wrap the candidate object.
+        print("[Protocol v1.1] Sending webrtc:ice");
+        socket.emit('webrtc:ice', icePayload);
+      };
     } catch (e) {
-      print("[WebRTC] Error handling offer: $e");
+      print("[WebRTC] Error creating offer: $e");
     }
   }
 
-  Future<void> handleAnswer(dynamic answerData) async {
+  Future<void> _handleAnswer(dynamic data) async {
     if (state.peerConnection == null) return;
     try {
-      Map<String, dynamic> payload;
-      if (answerData is String) {
-        payload = jsonDecode(answerData);
-      } else if (answerData is Map) {
-        payload = Map<String, dynamic>.from(answerData);
-      } else if (answerData is List) {
-        if (answerData.isEmpty) return;
-        payload = Map<String, dynamic>.from(answerData[0] as Map);
-      } else {
-        return;
-      }
+      // Unpack if needed
+      dynamic payload = data;
+      if (payload is String) payload = jsonDecode(payload);
 
-      RTCSessionDescription description =
-          RTCSessionDescription(payload['sdp'], payload['type']);
-      await state.peerConnection!.setRemoteDescription(description);
+      // Extract SDP. data might be { ..., sdp: "..." }
+      String? sdp = payload['sdp'];
+      String? type = payload['type'];
+
+      if (sdp != null && type != null) {
+        RTCSessionDescription description = RTCSessionDescription(sdp, type);
+        await state.peerConnection!.setRemoteDescription(description);
+      }
     } catch (e) {
       print("[WebRTC] Error handling answer: $e");
     }
   }
 
-  Future<void> handleCandidate(dynamic candidateData) async {
+  Future<void> _handleCandidate(dynamic data) async {
     if (state.peerConnection == null) return;
     try {
-      Map<String, dynamic> payload;
-      if (candidateData is String) {
-        payload = jsonDecode(candidateData);
-      } else if (candidateData is Map) {
-        payload = Map<String, dynamic>.from(candidateData);
-      } else if (candidateData is List) {
-        if (candidateData.isEmpty) return;
-        payload = Map<String, dynamic>.from(candidateData[0] as Map);
-      } else {
-        return;
-      }
+      dynamic payload = data;
+      if (payload is String) payload = jsonDecode(payload);
 
-      RTCIceCandidate candidate = RTCIceCandidate(
-          payload['candidate'], payload['sdpMid'], payload['sdpMLineIndex']);
-      await state.peerConnection!.addCandidate(candidate);
+      // Access 'candidate' field
+      dynamic candidateData = payload['candidate'];
+
+      if (candidateData != null) {
+        String iceCandidate = candidateData['candidate'];
+        String sdpMid = candidateData['sdpMid'];
+        int sdpMLineIndex = candidateData['sdpMLineIndex'];
+
+        RTCIceCandidate candidate =
+            RTCIceCandidate(iceCandidate, sdpMid, sdpMLineIndex);
+        await state.peerConnection!.addCandidate(candidate);
+      }
     } catch (e) {
       print("[WebRTC] Error handling candidate: $e");
     }
+  }
+
+  void _hangUp() {
+    print("[Protocol v1.1] Hangup/Cleanup.");
+    state.peerConnection?.close();
+    state.remoteRenderer.srcObject = null;
+
+    // Re-create peer connection for next call?
+    // Usually better to dispose and wait, but we'll re-init if needed.
+    // For now, just close and reset state.
+    state = state.copyWith(remoteRenderer: state.remoteRenderer);
+
+    // Re-initialize peer connection for future calls
+    _createPeerConnection();
   }
 
   Future<void> handleAttackComplete(dynamic data) async {

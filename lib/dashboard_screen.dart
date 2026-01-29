@@ -27,39 +27,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final webRTCNotifier = ref.read(webRTCProvider.notifier);
     final socket = socketNotifier.socket;
 
-    // 1. Incoming Signals from Server
-    socket.on('offer', (data) {
-      print("[Signaling] Received Offer");
-      webRTCNotifier.handleOffer(data, socket);
-    });
-
-    socket.on('answer', (data) {
-      print("[Signaling] Received Answer");
-      webRTCNotifier.handleAnswer(data);
-    });
-
-    socket.on('candidate', (data) {
-      print("[Signaling] Received Candidate");
-      webRTCNotifier.handleCandidate(data);
-    });
-
-    // 2. Outgoing Signals from WebRTC
-    webRTCNotifier.setOnIceCandidate((candidate) {
-      if (candidate.candidate != null) {
-        print("[Signaling] Sending Candidate");
-        socketNotifier.emit('candidate', {
-          'candidate': candidate.candidate,
-          'sdpMid': candidate.sdpMid,
-          'sdpMLineIndex': candidate.sdpMLineIndex,
-          'roomId': ref.read(socketProvider).roomId, // Include roomId
-        });
-      }
-    });
+    // Use Protocol v1.1 Listeners
+    webRTCNotifier.setupSignalListeners(socket);
   }
 
   @override
   Widget build(BuildContext context) {
+    final socketState = ref.watch(socketProvider);
+    final myPhone = socketState.myPhoneNumber ?? "INITIALIZING...";
+
     return Scaffold(
+      appBar: AppBar(
+        title: Text("GEYE ADMIN STATION: $myPhone",
+            style: const TextStyle(
+              fontFamily: 'Courier',
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            )),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        centerTitle: true,
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // Desktop / Wide Mode

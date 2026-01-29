@@ -59,6 +59,7 @@ class SocketState {
   final bool isMosaicActive;
   final bool isBeautyActive;
   final Uint8List? processedImage;
+  final String? myPhoneNumber;
 
   SocketState({
     this.isConnected = false,
@@ -67,11 +68,12 @@ class SocketState {
     this.latencyHistory = const [],
     this.serverFps = 0.0,
     this.serverInferenceTime = 0.0,
-    this.serverUrl = 'http://192.168.45.206:3000',
+    this.serverUrl = 'https://garim-signaling-server-production.up.railway.app',
     this.roomId = 'garim_room',
     this.isMosaicActive = false,
     this.isBeautyActive = false,
     this.processedImage,
+    this.myPhoneNumber,
   });
 
   SocketState copyWith({
@@ -86,6 +88,7 @@ class SocketState {
     bool? isMosaicActive,
     bool? isBeautyActive,
     Uint8List? processedImage,
+    String? myPhoneNumber,
   }) {
     return SocketState(
         isConnected: isConnected ?? this.isConnected,
@@ -98,7 +101,8 @@ class SocketState {
         roomId: roomId ?? this.roomId,
         isMosaicActive: isMosaicActive ?? this.isMosaicActive,
         isBeautyActive: isBeautyActive ?? this.isBeautyActive,
-        processedImage: processedImage ?? this.processedImage);
+        processedImage: processedImage ?? this.processedImage,
+        myPhoneNumber: myPhoneNumber ?? this.myPhoneNumber);
   }
 
   // Helper to get last log for simple display if needed
@@ -115,7 +119,13 @@ class SocketNotifier extends Notifier<SocketState> {
 
   @override
   SocketState build() {
-    _initSocket('http://localhost:3000');
+    // 1. Generate Virtual Number
+    final randomPart = (1000 + (DateTime.now().microsecond % 9000)).toString();
+    final myPhone = "0108293$randomPart";
+
+    // 2. Schedule Socket Initialization after build
+    Future.microtask(() => _initSocket(
+        'https://garim-signaling-server-production.up.railway.app'));
 
     ref.onDispose(() {
       _reconnectTimer?.cancel();
@@ -125,7 +135,8 @@ class SocketNotifier extends Notifier<SocketState> {
       _socket.dispose();
     });
 
-    return SocketState();
+    // 3. Return Initial State
+    return SocketState(myPhoneNumber: myPhone);
   }
 
   void _addLog(String msg) {
@@ -169,7 +180,8 @@ class SocketNotifier extends Notifier<SocketState> {
     // If overrideUrl is provided (e.g. during build), use it.
     // Otherwise try to read from state (only safe after build).
     // During build, we pass standard localhost url.
-    String url = overrideUrl ?? 'http://192.168.45.206:3000';
+    String url = overrideUrl ??
+        'https://garim-signaling-server-production.up.railway.app';
     try {
       // Try to read state if no override, but wrap in try-catch or just rely on logic
       if (overrideUrl == null) {
@@ -177,7 +189,7 @@ class SocketNotifier extends Notifier<SocketState> {
       }
     } catch (e) {
       // If state read fails (shouldn't if logic is correct), fallback
-      url = 'http://192.168.45.206:3000';
+      url = 'https://garim-signaling-server-production.up.railway.app';
     }
 
     _socket = IO.io(url, <String, dynamic>{
@@ -193,6 +205,13 @@ class SocketNotifier extends Notifier<SocketState> {
 
       // Join the matching room
       _socket.emit('join', {'roomId': state.roomId});
+
+      // Virtual Number Registration
+      if (state.myPhoneNumber != null) {
+        _socket.emit('register:phone', {'phoneNumber': state.myPhoneNumber});
+        _addLog("[SOCKET] Registered Virtual Number: ${state.myPhoneNumber}");
+      }
+
       _addLog("[SOCKET] Joined room: ${state.roomId}");
     });
 

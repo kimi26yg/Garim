@@ -17,16 +17,20 @@ class ControlSidebar extends ConsumerStatefulWidget {
 
 class _ControlSidebarState extends ConsumerState<ControlSidebar> {
   late TextEditingController _urlController;
+  late TextEditingController _targetController;
 
   @override
   void initState() {
     super.initState();
     _urlController = TextEditingController(text: 'http://localhost:3000');
+    _targetController =
+        TextEditingController(text: ''); // Empty by default or placeholder
   }
 
   @override
   void dispose() {
     _urlController.dispose();
+    _targetController.dispose();
     super.dispose();
   }
 
@@ -114,20 +118,73 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
               ],
             ),
             const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                ref.read(webRTCProvider.notifier).startCall(
-                      socketNotifier.socket,
-                      socketState.roomId,
-                    );
-              },
-              icon: const Icon(Icons.video_call),
-              label: const Text("START VIDEO CALL"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.black,
+
+            // DIAL PAD UI (Replaces Target Text Field)
+            _buildSectionHeader(context, "SECURE DIALER"),
+            const SizedBox(height: 12),
+
+            // Display Area
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.5)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _targetController.text.isEmpty
+                    ? "010-XXXX-XXXX"
+                    : _formatPhoneNumber(_targetController.text),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontFamily: 'Courier',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Keypad Grid
+            GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: 3,
+              childAspectRatio: 1.5,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                ...List.generate(9, (index) => index + 1)
+                    .map((e) => _buildNumpadButton(context, e.toString())),
+                _buildActionButton(context, "CLR", Colors.redAccent, () {
+                  _targetController.clear();
+                  setState(() {});
+                }),
+                _buildNumpadButton(context, "0"),
+                _buildActionButton(context, "CALL", Colors.greenAccent, () {
+                  final targetPhone =
+                      _formatRawPhoneNumber(_targetController.text);
+                  if (targetPhone.length == 11) {
+                    ref.read(webRTCProvider.notifier).requestCall(
+                          socketNotifier.socket,
+                          targetPhone,
+                          socketState.myPhoneNumber, // Pass my number
+                        );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("INVALID NUMBER LENGTH")),
+                    );
+                  }
+                }),
+              ],
+            ),
+            const SizedBox(height: 24),
             const SizedBox(height: 24),
 
             // 1. Image Selection Area
@@ -352,6 +409,82 @@ class _ControlSidebarState extends ConsumerState<ControlSidebar> {
             fontSize: 12,
           ),
           textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  // --- DIAL PAD HELPERS ---
+
+  String _formatPhoneNumber(String raw) {
+    if (raw.isEmpty) return "";
+    // Only keep digits
+    String digits = raw.replaceAll(RegExp(r'\D'), '');
+
+    // Format: 010-XXXX-XXXX
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7)
+      return "${digits.substring(0, 3)}-${digits.substring(3)}";
+    return "${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7, digits.length > 11 ? 11 : digits.length)}";
+  }
+
+  String _formatRawPhoneNumber(String raw) {
+    return raw.replaceAll(RegExp(r'\D'), '');
+  }
+
+  void _onNumpadPress(String value) {
+    if (_targetController.text.length >= 13)
+      return; // 010-xxxx-xxxx is 13 chars
+
+    String currentRaw = _formatRawPhoneNumber(_targetController.text);
+    if (currentRaw.length >= 11) return;
+
+    _targetController.text = _formatPhoneNumber(currentRaw + value);
+    setState(() {});
+  }
+
+  Widget _buildNumpadButton(BuildContext context, String value) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey[800]!),
+      ),
+      child: InkWell(
+        onTap: () => _onNumpadPress(value),
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Courier'),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+      BuildContext context, String label, Color color, VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Courier'),
+          ),
         ),
       ),
     );
