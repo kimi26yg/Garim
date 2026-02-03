@@ -46,7 +46,7 @@ class VideoFeedSection extends ConsumerWidget {
                           webRTCState.localRenderer,
                           objectFit:
                               RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                          mirror: true,
+                          mirror: false,
                         )
                       : Center(
                           child: Column(

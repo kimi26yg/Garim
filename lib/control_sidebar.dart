@@ -374,6 +374,26 @@ class AttackControlsPanel extends ConsumerWidget {
         // Deepfake Start/Stop
         ElevatedButton(
           onPressed: () {
+            // [LOGIC_UPDATE] Load Dynamic Video based on Image
+            if (!ref.read(webRTCProvider).isDeepfakeActive) {
+              final assetState = ref.read(attackAssetProvider);
+              if (assetState.selectedImage != null) {
+                final String filename = assetState.selectedImage!.name;
+                // Extract base name (e.g. "1.JPG" -> "1")
+                // We handle multiple dots just in case, but usually last dot is extension.
+                final String baseName =
+                    filename.substring(0, filename.lastIndexOf('.'));
+
+                final String videoPath = "assets/videos/deepfake/$baseName.mp4";
+                print(
+                    "[Deepfake] Mapping Image '$filename' -> Video '$videoPath'");
+
+                ref.read(webRTCProvider.notifier).loadDeepfakeVideo(videoPath);
+              } else {
+                print("[Deepfake] No image selected, using default video.");
+              }
+            }
+
             ref.read(webRTCProvider.notifier).toggleDeepfake();
           },
           style: ElevatedButton.styleFrom(

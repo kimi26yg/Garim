@@ -58,7 +58,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     });
 
+    // LISTENER: Show Incoming Call Dialog
+    ref.listen(webRTCProvider, (previous, next) {
+      if (previous?.callStatus != CallStatus.incoming &&
+          next.callStatus == CallStatus.incoming) {
+        _showIncomingCallDialog(context, ref, next.targetPhoneNumber);
+      }
+    });
+
+    // LISTENER: Close dialog if call status changes from incoming (e.g. cancelled by caller)
+    ref.listen(webRTCProvider, (previous, next) {
+      if (previous?.callStatus == CallStatus.incoming &&
+          next.callStatus != CallStatus.incoming) {
+        // If a dialog is open, maybe close it?
+        // This is tricky without a key or context handle, but often we can just pop.
+        // For now, assume user interaction or self-dismiss logic handles it, or check if top route is dialog.
+        Navigator.of(context, rootNavigator: true)
+            .popUntil((route) => route is! PopupRoute);
+      }
+    });
+
     return Scaffold(
+      backgroundColor: Colors.black,
       // AppBar Removed as per instructions
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -223,5 +244,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       print("[Capture] Exception: $e");
       socketNotifier.emit("log_local", "ERROR: Frame capture failed: $e");
     }
+  }
+
+  void _showIncomingCallDialog(
+      BuildContext context, WidgetRef ref, String? callerId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Colors.greenAccent, width: 2)),
+          title: const Text(
+            "INCOMING CALL",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 24),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.phone_in_talk, size: 64, color: Colors.white),
+              const SizedBox(height: 16),
+              Text(
+                callerId ?? "Unknown Caller",
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(webRTCProvider.notifier).rejectCall(
+                      ref.read(socketProvider.notifier),
+                    );
+              },
+              icon: const Icon(Icons.call_end),
+              label: const Text("REJECT"),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, foregroundColor: Colors.white),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(webRTCProvider.notifier).acceptCall(
+                      ref.read(socketProvider.notifier),
+                    );
+              },
+              icon: const Icon(Icons.call),
+              label: const Text("ACCEPT"),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green, foregroundColor: Colors.white),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

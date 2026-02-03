@@ -28,6 +28,7 @@ enum CallStatus {
   connecting,
   connected,
   failed,
+  incoming,
 }
 
 class WebRTCState {
@@ -433,6 +434,87 @@ class WebRTCNotifier extends Notifier<WebRTCState> {
         print("[WebRTC] Error processing call:hangup: $e");
       }
     });
+
+    // 5. Incoming Call Request (Callee)
+    socket.on('call:request', (data) {
+      try {
+        final payload = _parseSocketData(data);
+        if (payload == null) return;
+
+        print("[Protocol v1.1] Incoming Call Request: $payload");
+
+        // Extract Caller Info
+        final from = payload['from']?.toString();
+        // final to = payload['to']; // Should be me
+
+        if (state.callStatus == CallStatus.idle) {
+          state = state.copyWith(
+            callStatus: CallStatus.incoming,
+            targetPhoneNumber: from, // Temporarily store who is calling
+          );
+          // We do NOT set myPhoneNumber here, assuming it's already set or we get it from socketState if needed.
+          // But actually we need it. Let's assume we use what we have or just respond.
+        } else {
+          // Busy - Reject automatically?
+          print("[Protocol v1.1] Busy. Rejecting incoming call from $from");
+          socket.emit('call:response', {
+            'status': 'busy',
+            'to': from,
+            'from': 'busy_user', // Or my number if available
+            'reason': 'User is busy'
+          });
+        }
+      } catch (e) {
+        print("[WebRTC] Error processing call:request: $e");
+      }
+    });
+  }
+
+  // --- Actions ---
+
+  void acceptCall(SocketNotifier socketNotifier) {
+    final socket = socketNotifier.socket;
+    final targetPhone = state.targetPhoneNumber;
+    final myPhone = socketNotifier.state.myPhoneNumber; // Get from socket state
+
+    if (targetPhone == null) return;
+
+    print("[Protocol v1.1] Accepting Call from $targetPhone");
+
+    // Update State
+    state = state.copyWith(
+      callStatus: CallStatus.connected,
+      myPhoneNumber: myPhone,
+    );
+
+    // Emit Response
+    socket.emit('call:response', {
+      'status': 'accepted',
+      'to': targetPhone,
+      'from': myPhone,
+    });
+
+    // As Callee, we wait for 'webrtc:offer' now.
+    // _createOffer is only for Caller.
+  }
+
+  void rejectCall(SocketNotifier socketNotifier) {
+    final socket = socketNotifier.socket;
+    final targetPhone = state.targetPhoneNumber;
+    final myPhone = socketNotifier.state.myPhoneNumber;
+
+    print("[Protocol v1.1] Rejecting Call from $targetPhone");
+
+    state = state.copyWith(callStatus: CallStatus.idle);
+
+    if (targetPhone != null) {
+      socket.emit('call:response', {
+        'status': 'rejected',
+        'to': targetPhone,
+        'from': myPhone,
+        'reason': 'User rejected'
+      });
+    }
   }
 
   Future<void> requestCall(SocketNotifier socketNotifier,

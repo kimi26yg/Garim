@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:js_interop' as js_interop;
+import 'dart:math';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'mediapipe_web.dart';
+import 'face_topology.dart';
 
 enum VideoSourceType {
   camera,
@@ -18,6 +22,8 @@ class VideoProcessor {
   late html.VideoElement _deepfakeVideo;
   late html.CanvasElement _canvas;
   late html.CanvasRenderingContext2D _ctx;
+  late html.CanvasElement _maskCanvas;
+  late html.CanvasRenderingContext2D _maskCtx;
 
   // State
   MediaStream? _outputStream; // This is flutter_webrtc.MediaStream
@@ -27,6 +33,10 @@ class VideoProcessor {
   // Internal (Native)
   html.MediaStream? _nativeCanvasStream;
   html.MediaStream? _nativeDeepfakeStream;
+
+  // AI
+  FaceLandmarker? _faceLandmarker;
+  bool _isModelLoaded = false;
 
   VideoSourceType _currentSource = VideoSourceType.camera;
   bool _isMosaicActive = false;
@@ -85,10 +95,27 @@ class VideoProcessor {
     _canvas = html.CanvasElement(width: _width, height: _height);
     _ctx = _canvas.context2D;
 
+    _maskCanvas = html.CanvasElement(width: _width, height: _height);
+    _maskCtx = _maskCanvas.context2D;
+
     // Create native output stream from canvas
     _nativeCanvasStream = _canvas.captureStream(_fps);
 
     // We defer _outputStream creation to initialize()
+
+    // Load Model
+    _loadModel();
+  }
+
+  Future<void> _loadModel() async {
+    try {
+      print("[VideoProcessor] Loading FaceLandmarker...");
+      _faceLandmarker = await loadFaceLandmarker();
+      _isModelLoaded = true;
+      print("[VideoProcessor] FaceLandmarker loaded!");
+    } catch (e) {
+      print("[VideoProcessor] Model load error: $e");
+    }
   }
 
   /// Initialize with camera stream and deepfake video URL
@@ -303,28 +330,92 @@ class VideoProcessor {
 
       _ctx.save();
 
-      // Pass 2: Define Mask (Center Oval - assuming face is centered)
-      // Adjust oval size as needed (e.g., 50% of width, 40% of height)
-      _ctx.beginPath();
-      _ctx.ellipse(
-          _width / 2, // Center X
-          _height / 2, // Center Y
-          _width * 0.35, // Radius X (Face width)
-          _height * 0.25, // Radius Y (Face height)
-          0, // Rotation
-          0,
-          6.28, // 2*PI
-          false // anticlockwise
+      if (_isModelLoaded && _faceLandmarker != null) {
+        // Face Detection
+        try {
+          final result = _faceLandmarker!.detectForVideo(
+            (sourceElement as dynamic) as js_interop.JSAny,
+            DateTime.now().millisecondsSinceEpoch,
           );
-      _ctx.clip(); // Restrict following drawing to inside the oval
 
-      // Pass 3: Draw Soft/Glow Overly
-      _ctx.globalAlpha = 0.5; // Blending strength (0.0 - 1.0)
-      _ctx.filter = 'blur(8px) brightness(115%) saturate(110%)';
+          final landmarksList = result.faceLandmarks.toDart;
+          if (landmarksList.isNotEmpty) {
+            final landmarks = landmarksList[0].toDart;
 
-      _drawAspectFill(sourceElement, sourceWidth, sourceHeight);
+            // Helper to get path from indices
+            void drawPathFromIndices(List<int> indices) {
+              if (indices.isEmpty) return;
+              final first = landmarks[indices[0]];
+              _maskCtx.moveTo(first.x * _width, first.y * _height);
+              for (int i = 1; i < indices.length; i++) {
+                final p = landmarks[indices[i]];
+                _maskCtx.lineTo(p.x * _width, p.y * _height);
+              }
+              _maskCtx.closePath();
+            }
 
-      _ctx.restore(); // Remove clip, filter, and alpha
+            // 1. Clear Mask
+            _maskCtx.clearRect(0, 0, _width, _height);
+            _maskCtx.save();
+
+            // MIRROR THE MASK CONTEXT to match the mirrored video output
+            _maskCtx.translate(_width, 0);
+            _maskCtx.scale(-1, 1);
+
+            // 2. Draw Face Oval (Positive)
+            _maskCtx.beginPath();
+            drawPathFromIndices(kFaceOvalIndices);
+
+            _maskCtx.fillStyle = 'white';
+            _maskCtx.shadowColor = 'white';
+            _maskCtx.shadowBlur = 40; // Soft edge for oval
+            _maskCtx.fill();
+            _maskCtx.shadowBlur = 0;
+
+            // 3. Cut Out Eyes and Lips (Negative "Hole Punching")
+            _maskCtx.globalCompositeOperation = 'destination-out';
+            _maskCtx.fillStyle =
+                'black'; // Color doesn't matter for destination-out, just alpha
+
+            _maskCtx.shadowColor = 'black';
+            _maskCtx.shadowBlur = 10;
+
+            _maskCtx.beginPath();
+            drawPathFromIndices(kLeftEyeIndices);
+            drawPathFromIndices(kRightEyeIndices);
+            drawPathFromIndices(kLipsIndices);
+            _maskCtx.fill();
+
+            _maskCtx.shadowBlur = 0;
+
+            _maskCtx
+                .restore(); // Restore to normal coordinates (Un-mirrored) for drawing
+
+            // 4. Draw Beauty Filter INSIDE the Final Mask
+            // Note: The mask on pixels is now FLIPPED.
+            // _drawAspectFill ALREADY FLIPS the video.
+            // So Flipped Mask + Flipped Video = Aligned.
+
+            _maskCtx.save(); // Save again for composite ops
+            _maskCtx.globalCompositeOperation = 'source-in';
+            // Reduced Intensity: Blur 12->4, Brightness 110->105, Opacity 0.8->0.6
+            _maskCtx.filter = 'blur(4px) brightness(105%) saturate(102%)';
+            _drawAspectFill(sourceElement, sourceWidth, sourceHeight,
+                ctx: _maskCtx);
+            _maskCtx.restore();
+
+            // 5. Draw Mask Result onto Main Canvas
+            _ctx.globalAlpha = 0.6; // Reduced Opacity
+            _ctx.drawImage(_maskCanvas, 0, 0);
+          }
+        } catch (e) {
+          // Silently fail or optimize
+        }
+      } else {
+        // Fallback static mask (simplified) if needed, but for now we skip beauty to avoid ugly cutoff
+      }
+
+      _ctx.restore();
     } else {
       _ctx.filter = 'none';
       if (!_isMosaicActive) {
@@ -375,7 +466,9 @@ class VideoProcessor {
         html.window.requestAnimationFrame((_) => _processFrame());
   }
 
-  void _drawAspectFill(html.CanvasImageSource source, int srcW, int srcH) {
+  void _drawAspectFill(html.CanvasImageSource source, int srcW, int srcH,
+      {html.CanvasRenderingContext2D? ctx}) {
+    final targetCtx = ctx ?? _ctx;
     // Destination dimensions
     const destW = _width;
     const destH = _height;
@@ -405,7 +498,13 @@ class VideoProcessor {
     // Debug Crop Rect
     // print("Crop: $sx,$sy ${sw}x$sh -> $destW x $destH");
 
-    _ctx.drawImageScaledFromSource(source, sx, sy, sw, sh, 0, 0, destW, destH);
+    // Mirror the drawing to match local self-view
+    targetCtx.save();
+    targetCtx.translate(destW, 0);
+    targetCtx.scale(-1, 1);
+    targetCtx.drawImageScaledFromSource(
+        source, sx, sy, sw, sh, 0, 0, destW, destH);
+    targetCtx.restore();
   }
 
   void dispose() {
@@ -415,5 +514,9 @@ class VideoProcessor {
     _cameraVideo.removeAttribute('srcObject');
     _deepfakeVideo.pause();
     _deepfakeVideo.removeAttribute('src');
+    // Close landmarker
+    if (_faceLandmarker != null) {
+      _faceLandmarker!.close();
+    }
   }
 }
