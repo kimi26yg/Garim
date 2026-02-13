@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garim Project - Result Report</title>
+    <link rel="stylesheet" href="style.css"> <!-- Standard styles -->
+    <link rel="stylesheet" href="report.css"> <!-- Claymorphism Report styles -->
+    <style>
+        /* Specific overrides for this page content */
+        .tech-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .flow-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--clay-shadow-out);
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+        .flow-arrow {
+            color: #cbd5e0;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="clay-btn nav-back">← Back to Home</a>
+
+    <header>
+        <div class="container">
+            <span class="badge blue">Final Result Report</span>
+            <h1>Garim Project</h1>
+            <p style="font-size: 1.2rem; color: #718096; max-width: 600px; margin: 0 auto;">
+                Advanced Deepfake Detection & Security Ecosystem <br>
+                <strong>Attacker (Red Team)</strong> vs <strong>Defender (Blue Team)</strong>
+            </p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Section 1: Overview -->
+        <section>
+            <div class="clay-card">
+                <h2>Project Overview</h2>
+                <div class="grid-2">
+                    <div>
+                        <h3 style="color: var(--accent-red);">Garim Attack (Red Team)</h3>
+                        <p>A specialized "Attacker Console" simulating deepfake threats in real-time. Designed to generate sophisticated attacks to test the defense system.</p>
+                        <ul class="feature-list">
+                            <li>Real-time Deepfake Injection</li>
+                            <li>WebRTC Peer-to-Peer Video</li>
+                            <li>Socket.IO Signaling Control</li>
+                            <li>"Cyber/Hacker" Aesthetic UI</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent-blue);">Garim Eye (Blue Team)</h3>
+                        <p>An on-device defense system leveraging a hybrid AI engine to detect manipulated media with high accuracy and low latency.</p>
+                        <ul class="feature-list">
+                            <li>Hybrid Detection (FFT + CNN)</li>
+                            <li>On-device Privacy First</li>
+                            <li>Real-time Reliability Scoring</li>
+                            <li>Secure Audit Logging</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Garim Attack Detail -->
+        <section>
+            <h2 style="text-align: center; color: var(--accent-red);">Red Team: Garim Attack</h2>
+            <div class="grid-2">
+                <div class="clay-card">
+                    <h3>Architecture & Tech Stack</h3>
+                    <p>Built with <strong>Flutter</strong> for cross-platform capability, utilizing a robust stack for high-performance media manipulation.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="badge red">Flutter</span>
+                        <span class="badge red">Python Server</span>
+                        <span class="badge red">WebRTC</span>
+                        <span class="badge red">Riverpod</span>
+                    </div>
+                    <p style="margin-top: 1rem;">
+                        The app coordinates three main data streams: 
+                        <strong>Signaling</strong> (Connection), 
+                        <strong>Video Streaming</strong> (P2P), and 
+                        <strong>AI Processing</strong> (Deepfake Gen).
+                    </p>
+                </div>
+                <div class="clay-card">
+                    <h3>Key Capabilities</h3>
+                    <ul class="feature-list">
+                        <li><strong>Deepfake Overlay:</strong> Server-side processing renders swapped faces into the live stream.</li>
+                        <li><strong>Secure Dialer:</strong> Custom keypad interface for initiating "attacks" (calls).</li>
+                        <li><strong>Latency Monitoring:</strong> Real-time graphs to ensure attack stability.</li>
+                        <li><strong>Station Identity:</strong> dynamic "Virtual Number" generation.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Garim Eye Detail -->
+        <section>
+            <h2 style="text-align: center; color: var(--accent-blue);">Blue Team: Garim Eye v2</h2>
+            <div class="clay-card" style="margin-bottom: 2rem;">
+                <h3>Defense Strategy: The Hybrid Engine</h3>
+                <p>To balance performance and accuracy on mobile devices, we implemented a multi-stage detection pipeline.</p>
+                
+                <div class="tech-flow">
+                    <div class="flow-item">Input Stream</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item">Stage 1: FFT Analysis <br><span style="font-size:0.8rem; font-weight:normal;">(Frequency Domain)</span></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item">Stage 2: MobileNetV3 + LSTM <br><span style="font-size:0.8rem; font-weight:normal;">(Spatial-Temporal)</span></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item" style="color: var(--accent-red);">Result: Safe / Danger</div>
+                </div>
+
+                <div class="grid-3" style="margin-top: 2rem;">
+                    <div class="stat-box">
+                        <div class="stat-value">90%+</div>
+                        <div class="stat-label">Target Accuracy</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">&lt;500ms</div>
+                        <div class="stat-label">Detection Latency</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">On-Device</div>
+                        <div class="stat-label">Privacy Preserved</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="clay-card">
+                    <h3>Reliability Scoring</h3>
+                    <p>We don't just output a number. The system uses an <strong>Exponential Moving Average (EMA)</strong> filter to smooth out noise from individual frames.</p>
+                    <br>
+                    <div style="background: white; padding: 1rem; border-radius: 12px;">
+                        <strong>Status Thresholds:</strong>
+                        <ul style="margin: 0; padding-left: 1.2rem; margin-top: 0.5rem;">
+                            <li style="color: var(--accent-green);"><strong>SAFE (0.0 - 0.4):</strong> Normal Activity</li>
+                            <li style="color: #d69e2e;"><strong>WARNING (0.4 - 0.7):</strong> Potential Anomaly</li>
+                            <li style="color: var(--accent-red);"><strong>DANGER (0.7 - 1.0):</strong> High Probability of Deepfake</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="clay-card">
+                    <h3>Audit Logging</h3>
+                    <p>Every detection event is logged securely for post-analysis without compromising user video data.</p>
+                    <ul class="feature-list">
+                        <li>Timestamped Event Logs</li>
+                        <li>Raw Score vs Confidence Score</li>
+                        <li>Network Latency Records</li>
+                        <li>Encrypted Local Storage</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Demo / UI Gallery (Placeholder for Screenshots) -->
+        <section>
+            <div class="clay-card" style="text-align: center;">
+                <h2>System Demonstration</h2>
+                <p>The Garim ecosystem provides a complete feedback loop for testing and improving deepfake defense mechanisms.</p>
+                <div class="grid-2" style="margin-top: 2rem;">
+                    <div style="background: #000; height: 200px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent-green); font-family: monospace;">
+                        [APP SCREENSHOT: Garim Attack Dashboard]
+                    </div>
+                    <div style="background: #fff; height: 200px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent-blue); border: 2px solid #e2e8f0;">
+                         [APP SCREENSHOT: Garim Eye Detection]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Conclusion -->
+        <section style="text-align: center; margin-bottom: 8rem;">
+            <h2>Project Conclusion</h2>
+            <p style="max-width: 700px; margin: 0 auto 2rem auto;">
+                The Garim project successfully demonstrates that <strong>on-device AI</strong> can effectively counter real-time deepfake threats. By simulating the attacker with <em>Garim Attack</em>, we robustly trained and validated the <em>Garim Eye</em> defense engine.
+            </p>
+            <a href="index.html" class="clay-btn primary">Explore Solutions</a>
+        </section>
+
+    </main>
+
+</body>
+</html>

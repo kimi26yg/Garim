@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GARIM - 시연용 앱 개발</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                🛡️ GARIM
+            </a>
+            <div class="nav-links">
+                <a href="index.html">홈</a>
+                <a href="solutions.html">솔루션</a>
+                <a href="technology.html">기술 소개</a>
+                <a href="development.html" class="active">앱 개발</a>
+                <a href="presentation.html" style="color: var(--accent-blue); font-weight: bold;">결과 보고서</a>
+            </div>
+            <a href="#" class="clay-btn primary">문의하기</a>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <h2>Garim Eye v2 Development</h2>
+                <p>시연용 앱 개발 과정 및 기술 구현 상세</p>
+            </div>
+
+            <!-- WebRTC Architecture -->
+            <div class="feature-block clay-card">
+                <h3>📡 실시간 영상 통신 구조 (WebRTC & Signaling)</h3>
+                <p style="margin-bottom: 2rem;">
+                    <strong>garim_eye_v2</strong>는 카카오 페이스톡, 인스타그램 영상 통화와 같은 
+                    <span class="highlight">실제 화상 통화 서비스의 인프라를 그대로 재현</span>하였습니다.
+                </p>
+
+                <div class="info-grid" style="grid-template-columns: 1fr; gap: 2rem;">
+                    <div>
+                        <h4 class="highlight">1. 시그널링 서버 (Node.js + Socket.IO)</h4>
+                        <ul class="spec-list">
+                            <li><strong>목적:</strong> 기기 간 초기 연결을 중계하는 서버로 현대 화상 통화 서비스 인프라 재현</li>
+                            <li><strong>번호 기반 라우팅:</strong> 유동적인 소켓 ID 대신 고유한 010 가상 번호를 식별자로 사용</li>
+                            <li><strong>이중 매핑:</strong> phoneRegistry를 통해 번호와 소켓 ID를 매핑 관리</li>
+                            <li><strong>배포:</strong> Railway 클라우드 플랫폼에서 상시 가동 (<code>garim_attack_server</code>)</li>
+                            <li><strong>신호 교정:</strong> 웹/앱 환경 차이로 발생하는 데이터 규격 차이를 서버에서 교정</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="highlight">2. WebRTC P2P 미디어 스트리밍</h4>
+                        <ul class="spec-list">
+                            <li><strong>초저지연 전송:</strong> 서버를 거치지 않고 사용자 기기 간 직접 교환</li>
+                            <li><strong>Remote Stream 접근:</strong> 상대방의 RemoteVideoTrack에서 프레임 데이터를 직접 가로채 분석</li>
+                            <li><strong>보안:</strong> DTLS/SRTP 암호화 전송, 영상 데이터는 서버에 미저장</li>
+                            <li><strong>구조:</strong> 웹(공격자) ↔ 서버(중계기) ↔ 앱(방어자 + G-EYE)</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="highlight">3. 통합 통신 규격 (Protocol v1.1 Unified)</h4>
+                        <p style="margin-bottom: 1rem;">웹 대시보드와 모바일 앱이 오차 없이 대화할 수 있도록 독자적인 통신 표준 구축:</p>
+                        <ul class="spec-list">
+                            <li><code>register:phone</code> - 사용자 가상 번호 등록</li>
+                            <li><code>call:request</code> - 보안 통화 세션 시작 요청</li>
+                            <li><code>call:response</code> - 수락 시 WebRTC 핸드셰이킹 개시</li>
+                            <li><code>webrtc:offer/answer</code> - 영상 포맷 및 코덱 정보 교환</li>
+                            <li><code>call:hangup</code> - 통화 종료 및 자원 반납</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Model Integration Challenges -->
+            <div class="feature-block clay-card" style="margin-top: 4rem;">
+                <h3>🧠 온디바이스 AI 모델 이식 과정</h3>
+                <p style="margin-bottom: 2rem;">
+                    실시간 딥페이크 탐지를 위해 <strong>MobileNetV3 + LSTM 모델</strong>을 
+                    Flutter 앱에 직접 이식하는 과정에서 여러 기술적 도전 과제를 해결했습니다.
+                </p>
+
+                <div class="info-grid" style="grid-template-columns: 1fr; gap: 3rem;">
+                    <!-- Challenge 1: TFLite Score Issue -->
+                    <div class="clay-card" style="background: #fff3e0; border-left: 4px solid var(--accent-warning);">
+                        <h4>⚠️ 이슈 1: TFLite 모델 추론 점수가 일관되게 0.0 출력</h4>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <strong>증상:</strong>
+                            <ul class="spec-list">
+                                <li>Python 환경에서는 정상 작동하는 모델이 Flutter TFLite에서 항상 0.0 반환</li>
+                                <li>BATCH_SIZE 및 입력 버퍼 로직 수정 후에도 동일한 결과</li>
+                                <li>로그 출력이 누락되어 디버깅 어려움</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin: 1.5rem 0;">
+                            <strong>원인 분석:</strong>
+                            <ul class="spec-list">
+                                <li>모델 변환 과정에서의 구조적 문제 의심</li>
+                                <li>입력 텐서 형식 불일치 (shape, dtype)</li>
+                                <li>로깅 시스템이 제거되어 중간 추론 과정 불투명</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin: 1.5rem 0;">
+                            <strong class="highlight">해결 방법:</strong>
+                            <ul class="spec-list">
+                                <li>Python에서 모델 테스트를 통한 변환 전후 일관성 검증</li>
+                                <li>입력 전처리 파이프라인 재검증 (정규화, 리사이징)</li>
+                                <li>상세 로깅 재구현으로 추론 각 단계별 모니터링 강화</li>
+                                <li>TFLite Interpreter 초기화 시 delegate 옵션 최적화</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Challenge 2: iOS Build -->
+                    <div class="clay-card" style="background: #ffebee; border-left: 4px solid var(--accent-danger);">
+                        <h4>🔴 이슈 2: iOS Xcode 빌드 실패 (PhaseScriptExecution)</h4>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <strong>증상:</strong>
+                            <ul class="spec-list">
+                                <li><code>Command PhaseScriptExecution failed</code> 에러 발생</li>
+                                <li><code>xcode_backend.dart</code>에서 Null check operator 오류</li>
+                                <li>Flutter xcconfig 파일 참조 실패</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin: 1.5rem 0;">
+                            <strong class="highlight">해결 방법:</strong>
+                            <ul class="spec-list">
+                                <li><code>project.pbxproj</code> 파일 내 Flutter xcconfig 경로 수정</li>
+                                <li><code>FLUTTER_BUILD_DIR</code> 환경 변수 인식 문제 해결</li>
+                                <li>Podfile 및 빌드 설정 재검증</li>
+                                <li>Clean build 수행으로 캐시 문제 제거</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Challenge 3: Socket Data Parsing -->
+                    <div class="clay-card" style="background: #e3f2fd; border-left: 4px solid var(--primary-blue);">
+                        <h4>📦 이슈 3: Socket.IO 데이터 파싱 오류</h4>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <strong>증상:</strong>
+                            <ul class="spec-list">
+                                <li>웹에서 전송된 데이터가 앱에서 <code>List</code> 형태로 래핑되어 수신</li>
+                                <li>SDP payload가 <code>String</code>으로 전달되는 경우 파싱 실패</li>
+                                <li>런타임 타입 에러 발생</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin: 1.5rem 0;">
+                            <strong class="highlight">해결 방법:</strong>
+                            <ul class="spec-list">
+                                <li>데이터 수신 시 <code>List</code> 여부 먼저 감지</li>
+                                <li>List인 경우 첫 번째 요소 추출 후 <code>Map.from()</code>으로 안전 변환</li>
+                                <li>String SDP는 JSON 파싱 후 처리</li>
+                                <li>서버 측 신호 교정 로직 추가로 근본 해결</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Challenge 4: MediaPipe Migration -->
+                    <div class="clay-card" style="background: #f3e5f5; border-left: 4px solid #9c27b0;">
+                        <h4>🌐 이슈 4: 웹 환경 얼굴 탐지 (MediaPipe 마이그레이션)</h4>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <strong>배경:</strong>
+                            <ul class="spec-list">
+                                <li>ML Kit은 Flutter Web에서 미지원</li>
+                                <li>웹 환경에서도 얼굴 탐지 기능 필요 (<code>garim_attack</code> 웹 대시보드)</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin: 1.5rem 0;">
+                            <strong class="highlight">해결 방법:</strong>
+                            <ul class="spec-list">
+                                <li><code>google_mlkit_face_detection</code> → <code>mediapipe_tasks_vision</code> 교체</li>
+                                <li>MediaPipe WASM 백엔드를 이용한 웹 전용 얼굴 탐지 구현</li>
+                                <li>CanvasElement, ImageElement 기반 프레임 처리로 변경</li>
+                                <li>크로스 플랫폼 일관성 유지</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Development Insights -->
+            <div class="feature-block clay-card" style="margin-top: 4rem; background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);">
+                <h3>💡 개발 인사이트</h3>
+                <ul class="spec-list">
+                    <li>
+                        <strong>실제 서비스 환경 재현:</strong>
+                        일반 화상 통화 앱과 동일한 WebRTC 구조를 채택하여 
+                        B2B 파트너사가 기존 인프라에 쉽게 통합할 수 있도록 설계했습니다.
+                    </li>
+                    <li>
+                        <strong>온디바이스 AI의 현실:</strong>
+                        서버 의존 없이 사용자 기기에서 직접 추론을 수행하면서 
+                        모델 최적화, 플랫폼별 호환성, 성능 이슈 등 다양한 도전 과제를 경험했습니다.
+                    </li>
+                    <li>
+                        <strong>디버깅의 중요성:</strong>
+                        상세한 로깅과 단계별 검증이 없다면 블랙박스 같은 모바일 AI 모델 디버깅은 
+                        사실상 불가능합니다. 투명성 확보가 핵심입니다.
+                    </li>
+                    <li>
+                        <strong>크로스 플랫폼 통합:</strong>
+                        웹(공격자 시뮬레이션)과 앱(실제 사용자)이 완벽히 통신하려면 
+                        프로토콜 표준화와 데이터 교정 로직이 필수입니다.
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Recent Updates (v5.1 Deep Dive) -->
+            <div class="feature-block clay-card" style="margin-top: 4rem; border: 2px solid var(--primary-blue);">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <span style="background: var(--primary-blue); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">DEV LOG v5.1</span>
+                    <h3 style="margin-top: 1rem;">✨ V5.1 UI/UX 고도화 기술 명세</h3>
+                    <p class="text-muted">사용자 경험을 극대화하기 위한 미세 조정 (Micro-interactions)</p>
+                </div>
+
+                <div class="info-grid" style="grid-template-columns: 1fr; gap: 2rem;">
+                    
+                    <!-- 1. Ambient Glow Physics -->
+                    <div>
+                        <h4 class="highlight">1. 4-Way Ambient Glow (물리 엔진 기반)</h4>
+                        <p style="margin-bottom: 0.5rem;">위험도(RiskLevel)에 따라 펄스 애니메이션의 물리적 속성이 실시간으로 변화합니다.</p>
+                        <table class="tech-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <th style="text-align: left; padding: 8px;">상태</th>
+                                <th style="text-align: left; padding: 8px;">애니메이션 컨트롤러</th>
+                                <th style="text-align: left; padding: 8px;">Glow 두께 (Thickness)</th>
+                                <th style="text-align: left; padding: 8px;">투명도 (Opacity)</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;"><span style="color: green;">Safe</span></td>
+                                <td style="padding: 8px;">Static</td>
+                                <td style="padding: 8px;">40.0px (고정)</td>
+                                <td style="padding: 8px;">15%</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;"><span style="color: orange;">Warning</span></td>
+                                <td style="padding: 8px;">Slow Pulse (1000ms)</td>
+                                <td style="padding: 8px;">70px ↔ 85px</td>
+                                <td style="padding: 8px;">25% ↔ 40%</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;"><span style="color: red; font-weight: bold;">Critical</span></td>
+                                <td style="padding: 8px;">Rapid Pulse (500ms)</td>
+                                <td style="padding: 8px;">100px ↔ 130px</td>
+                                <td style="padding: 8px;">30% ↔ 80%</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 2. Haptic & Auto-Stop -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h4 class="highlight">2. 다이내믹 햅틱 피드백 (Haptic)</h4>
+                            <ul class="spec-list">
+                                <li><strong>Warning:</strong> <code>MediumImpact</code> (1회) - 사용기 주의 환기.</li>
+                                <li><strong>Critical:</strong> <code>HeavyImpact</code> (즉시) + <strong>1초 주기 반복</strong> - 확실한 경고 전달.</li>
+                                <li>상태가 Safe로 복귀 시 타이머 즉시 해제 (Debouncing 적용).</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="highlight">3. 지능형 배터리 세이버 (Auto-Stop)</h4>
+                            <ul class="spec-list">
+                                <li><strong>Trigger:</strong> 통화 연결 후 5분 이상 <code>DetectionStatus.safe</code> 지속 시 발동.</li>
+                                <li><strong>Action:</strong> AI 엔진을 Paused 상태로 전환하여 NPU/GPU 자원 점유율 0%로 하락.</li>
+                                <li><strong>UX:</strong> "Safe Call Confirmed" 다이얼로그 출력 후 보호 모드 토글 자동 OFF.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 3. Insight Panel Detail -->
+                    <div>
+                        <h4 class="highlight">4. Security Insight Panel 상세</h4>
+                        <p>개발자 및 QA를 위한 실시간 블랙박스 데이터 시각화 도구입니다.</p>
+                        <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">
+                            <ul class="spec-list" style="margin: 0;">
+                                <li><strong>등급 세분화:</strong> 95점 이상 "ULTRA HD SAFE", 80점 이상 "SAFE", 40점 미만 "DANGER".</li>
+                                <li><strong>가변 샘플링:</strong> 성능과 발열 제어를 위해 1.25s, 5.0s, 10.0s 주기를 동적으로 스위칭.</li>
+                                <li><strong>열 관리 (Thermal):</strong> 기기 온도 상태(Nominal, Fair, Critical)에 따라 UI 색상 변경 (Green -> Red).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <h3>GARIM</h3>
+                <p>© 2026 GARIM. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>

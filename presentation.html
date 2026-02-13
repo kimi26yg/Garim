@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garim Project - Final Presentation</title>
+    <link rel="stylesheet" href="presentation.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="logo-area">
+            <img src="assets/logos/garim_good.png" alt="Garim Logo" style="height: 40px; width: auto;"> GARIM
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#cover" class="nav-link">Team Garim</a></li>
+            <li class="nav-group" style="margin-top: 1rem;">0. 도입 및 문제 제기</li>
+            <li><a href="#opening-hook" class="nav-link">진짜 일론머스크?</a></li>
+            <li><a href="#opening-reveal" class="nav-link">정답 공개</a></li>
+            <li><a href="#problem-cases" class="nav-link">실제 피해 사례</a></li>
+            <li><a href="#problem" class="nav-link">문제의 심각성 (통계)</a></li>
+            <li><a href="#brand" class="nav-link">가림 브랜드 스토리</a></li>
+            <li><a href="#intro" class="nav-link">가림-아이 소개</a></li>
+
+
+            <li class="nav-group" style="margin-top: 1rem;">1. 배경 및 시장 분석</li>
+            <li><a href="#market" class="nav-link">시장 분석</a></li>
+            <li><a href="#on-device" class="nav-link">온디바이스의 필요성</a></li>
+
+
+            <li class="nav-group" style="margin-top: 1rem;">2. 시스템 개요</li>
+            <li><a href="#system-flow" class="nav-link">피해 시나리오</a></li>
+            <li><a href="#defense-strategy" class="nav-link">방어 전략 (Strategy)</a></li>
+            <li><a href="#architecture" class="nav-link">전체 아키텍처</a></li>
+            <li><a href="#interaction" class="nav-link">능동적 검증 (상호작용)</a></li>
+
+            <li class="nav-group" style="margin-top: 1rem;">3. 가림 아이 (핵심 기술)</li>
+            <li><a href="#garim-eye-overview" class="nav-link">Input Pipeline 구조</a></li>
+            <li><a href="#dataset" class="nav-link">데이터셋 구축</a></li>
+            <li><a href="#fft-1" class="nav-link">FFT: 주파수 분해 기술</a></li>
+            <li><a href="#fft-2" class="nav-link">FFT: 분석 로직 (1~2단계)</a></li>
+            <li><a href="#fft-3" class="nav-link">FFT: 분석 로직 (3단계)</a></li>
+            <li><a href="#fft-4" class="nav-link">FFT: 분석 로직 (4~5단계)</a></li>
+            <li><a href="#model-arch-1" class="nav-link">모델: 구조 (MobileNetV2)</a></li>
+            <li><a href="#model-arch-2" class="nav-link">모델: 학습 전략</a></li>
+            <li><a href="#model-arch-3" class="nav-link">모델: 성능 평가</a></li>
+
+
+
+
+            <li class="nav-group" style="margin-top: 1rem;">4. 검증 및 시연</li>
+            <li><a href="#garim-attack" class="nav-link">가림 어택 (공격 도구)</a></li>
+            <li><a href="#demo" class="nav-link">시스템 시연</a></li>
+            <li><a href="#differentiation" class="nav-link">차별점 및 경쟁력</a></li>
+
+            <li class="nav-group" style="margin-top: 1rem;">5. 비즈니스 및 미래</li>
+            <li><a href="#business-1" class="nav-link">수익화 전략</a></li>
+            <li><a href="#roadmap" class="nav-link">향후 로드맵</a></li>
+
+            <li><a href="#thankyou" class="nav-link">마무리</a></li>
+        </ul>
+        <div style="margin-top: auto; padding-top: 2rem;">
+            <a href="index.html" style="display: block; text-align: center; color: #718096; text-decoration: none; font-size: 0.9rem;">← 메인으로 돌아가기</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content-area">
+
+        <!-- Slide 0: Cover Page -->
+        <section id="cover" class="slide-section active" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: radial-gradient(circle at center, #f7fafc 0%, #edf2f7 100%);">
+            
+            <img src="assets/logos/garim_good.png" alt="Garim Logo" style="width: 180px; height: auto; margin-bottom: 2rem; animation: float 6s ease-in-out infinite; drop-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);">
+            
+            <h1 style="font-size: 5rem; font-weight: 900; color: var(--heading-color); margin: 0; letter-spacing: -2px; line-height: 1.1;">
+                <span class="text-gradient" style="background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">GARIM</span> PROJECT
+            </h1>
+            
+            <div style="width: 100px; height: 6px; background: var(--accent-blue); border-radius: 4px; margin: 2rem auto;"></div>
+
+            <p style="font-size: 2.2rem; font-weight: 700; color: #4a5568; margin-bottom: 4rem; text-shadow: 0 2px 4px rgba(255,255,255,0.8);">
+                "가려낼수록 선명해지는 진실,<br>
+                <span style="color: var(--accent-blue);">가릴수록 안전해지는 대화"</span>
+            </p>
+
+            <div class="clay-card" style="padding: 2rem 4rem; display: inline-block;">
+                <h3 style="color: var(--heading-color); margin-bottom: 1.5rem; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: #718096;">Team Garim</h3>
+                <div style="display: flex; gap: 3rem; justify-content: center; text-align: center;">
+                    <div>
+                        <div style="font-weight: 800; color: var(--accent-blue); font-size: 1.1rem; margin-bottom: 0.3rem;">CEO</div>
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.3rem;">김용관</div>
+                        <div style="font-size: 0.85rem; color: #718096; font-weight: 500;">Flutter 앱 개발</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: var(--accent-purple); font-size: 1.1rem; margin-bottom: 0.3rem;">CTO</div>
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.3rem;">강혜린 · 최은선</div>
+                        <div style="font-size: 0.85rem; color: #718096; font-weight: 500;">AI 모델 · FFT 분석</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #ed8936; font-size: 1.1rem; margin-bottom: 0.3rem;">CMO</div>
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.3rem;">배용성</div>
+                        <div style="font-size: 0.85rem; color: #718096; font-weight: 500;">비즈니스 전략</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem; font-size: 1.1rem; color: #a0aec0; font-weight: 500;">
+                저희는 가상의 보안 솔루션 스타트업입니다.
+            </div>
+        </section>
+
+        <!-- Slide 0-0: Opening Hook (Elon Musk) -->
+        <section id="opening-hook" class="slide-section" style="display: flex; flex-direction: column; justify-content: flex-start;">
+            <div class="section-header" style="text-align: left; margin-bottom: 2rem; width: 100%;">
+                <h2 class="section-title">진짜 일론머스크</h2>
+                <div class="section-subtitle" style="font-size: 1.5rem; color: var(--accent-red);">"이 중, 인공지능이 만든 딥페이크는 몇 번일까요?"</div>
+            </div>
+
+            <div class="clay-card" style="max-width: 900px; width: 100%; margin: auto; padding: 2rem;">
+                <div class="grid-2" style="gap: 1.5rem;">
+                    <div style="position: relative;">
+                        <img src="assets/elon/1.jpg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">1</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/2.jpg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">2</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/3.jpeg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">3</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/4.jpeg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">4</div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Optional: Hidden hint for the presenter, or keeping it clean for the audience -->
+        </section>
+
+        <!-- Slide 0-1: Opening Reveal (Answer) -->
+        <section id="opening-reveal" class="slide-section" style="display: flex; flex-direction: column; justify-content: flex-start;">
+            <div class="section-header" style="text-align: left; margin-bottom: 2rem; width: 100%;">
+                <h2 class="section-title">진짜 일론머스크</h2>
+                <div class="section-subtitle" style="font-size: 1.5rem; color: var(--accent-green);">"정답은... 모두 진짜입니다."</div>
+            </div>
+
+            <div class="clay-card" style="max-width: 900px; width: 100%; margin: auto; padding: 2rem;">
+                <div class="grid-2" style="gap: 1.5rem;">
+                    <div style="position: relative;">
+                        <img src="assets/elon/1.jpg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">1</div>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(16, 185, 129, 0.9); color: white; padding: 10px 30px; border-radius: 50px; font-weight: 900; font-size: 2rem; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">REAL</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/2.jpg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">2</div>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(16, 185, 129, 0.9); color: white; padding: 10px 30px; border-radius: 50px; font-weight: 900; font-size: 2rem; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">REAL</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/3.jpeg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">3</div>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(16, 185, 129, 0.9); color: white; padding: 10px 30px; border-radius: 50px; font-weight: 900; font-size: 2rem; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">REAL</div>
+                    </div>
+                    <div style="position: relative;">
+                        <img src="assets/elon/4.jpeg" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">4</div>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(16, 185, 129, 0.9); color: white; padding: 10px 30px; border-radius: 50px; font-weight: 900; font-size: 2rem; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">REAL</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Slide 0-2: Problem Statement Part 2 (Real Cases) -->
+        <section id="problem-cases" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title" style="color: var(--accent-red);">⚠️ 누구나, 사진 한 장으로, 범죄 가능</h2>
+                <div class="section-subtitle">SNS 프로필 사진만 있으면 충분합니다</div>
+            </div>
+
+            <div class="clay-card">
+                <h3 style="color: #fbb6ce; text-align: center;">실제 피해 사례</h3>
+                <div class="grid-2">
+                    <div class="clay-card" style="background: rgba(255,255,255,0.1); display: flex; gap: 1.5rem; align-items: center;">
+                        <div style="font-size: 3.5rem; flex-shrink: 0;">👨‍👩‍👧</div>
+                        <div>
+                            <h3 style="color: #fc8181; margin-top: 0;">지인 사칭 피싱</h3>
+                            <p style="color: #e2e8f0;">
+                                <strong>"엄마 급한데 돈 좀 보내줘"</strong><br>
+                                자녀 얼굴 실시간 합성 → 영상통화 → 금전 요구
+                            </p>
+                        </div>
+                    </div>
+                    <div class="clay-card" style="background: rgba(255,255,255,0.1); display: flex; gap: 1.5rem; align-items: center;">
+                        <div style="font-size: 3.5rem; flex-shrink: 0;">💔</div>
+                        <div>
+                            <h3 style="color: #fc8181; margin-top: 0;">로맨스 스캠</h3>
+                            <p style="color: #e2e8f0;">
+                                AI 가상인물로 위장<br>
+                                데이팅 앱 → 친밀감 형성 → 투자 유도
+                            </p>
+                        </div>
+                    </div>
+                    <div class="clay-card" style="background: rgba(255,255,255,0.1); grid-column: 1 / -1; display: flex; gap: 1.5rem; align-items: center;">
+                        <div style="font-size: 3.5rem; flex-shrink: 0;">🏢</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: #fc8181; margin-top: 0;">기업 임원 사칭</h3>
+                            <p style="color: #e2e8f0;">
+                                CEO 얼굴 도용 → 긴급 화상회의 → 송금 지시 → <strong style="color: #fc8181; font-size: 1.4rem;">수억원 편취</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </section>
+
+        <!-- Slide 0-1: Problem Statement Part 1 (Crisis Graph) -->
+        <section id="problem" class="slide-section">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <h2 class="section-title" style="color: var(--accent-red); font-size: 3rem;">🚨 디지털 시대의 새로운 위협</h2>
+                <div class="section-subtitle" style="font-size: 1.3rem;">"보는 것이 믿는 것"인 시대는 끝났습니다.</div>
+            </div>
+            
+            <div class="clay-card" style="background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); padding: 2rem;">
+                <h3 style="color: var(--accent-red); margin-bottom: 2rem; font-size: 2rem;">📈 딥페이크 범죄 폭발적 증가 추이</h3>
+                <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 250px; padding-bottom: 1.5rem; border-bottom: 3px solid #e2e8f0;">
+                    <div style="text-align: center; width: 22%;">
+                        <div style="font-weight: bold; color: #718096; margin-bottom: 0.8rem; font-size: 1.3rem;">1.6조</div>
+                        <div style="height: 30px; background: #cbd5e0; border-radius: 12px 12px 0 0;"></div>
+                        <div style="margin-top: 0.8rem; font-weight: 600; color: #718096; font-size: 1.1rem;">2023</div>
+                    </div>
+                    <div style="text-align: center; width: 22%;">
+                        <div style="font-weight: bold; color: #faa0a0; margin-bottom: 0.8rem; font-size: 1.3rem;">7.8조</div>
+                        <div style="height: 60px; background: #fc8181; border-radius: 12px 12px 0 0;"></div>
+                        <div style="margin-top: 0.8rem; font-weight: 600; color: #718096; font-size: 1.1rem;">2024</div>
+                    </div>
+                    <div style="text-align: center; width: 22%;">
+                        <div style="font-weight: 900; color: #e53e3e; margin-bottom: 0.8rem; font-size: 1.5rem;">16.8조</div>
+                        <div style="height: 100px; background: #e53e3e; border-radius: 12px 12px 0 0;"></div>
+                        <div style="margin-top: 0.8rem; font-weight: 800; color: #e53e3e; font-size: 1.3rem;">2025</div>
+                    </div>
+                    <div style="text-align: center; width: 22%;">
+                        <div style="font-weight: 900; color: var(--accent-red); margin-bottom: 0.8rem; font-size: 1.8rem;">55조</div>
+                        <div style="height: 210px; background: var(--accent-red); border-radius: 12px 12px 0 0; position: relative; box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);">
+                            <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.9rem; font-weight: 800; white-space: nowrap;">딜로이트 리포트</div>
+                        </div>
+                        <div style="margin-top: 0.8rem; font-weight: 800; color: var(--accent-red); font-size: 1.3rem;">2027(E)</div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 2rem; color: #718096; font-size: 1.1rem; font-weight: 600;">
+                    *전 세계 딥페이크 관련 금융 피해 규모 (단위: 원)
+                </p>
+            </div>
+
+            <div class="callout" style="margin-top: 2rem; background: rgba(239, 68, 68, 0.1); border-left-color: var(--accent-red); padding: 2rem;">
+                <p style="font-size: 1.3rem; color: var(--accent-red); font-weight: 700; text-align: center; line-height: 1.8;">
+                    "범죄 도구의 민주화" - 누구나 쉽게 딥페이크를 만들 수 있는 시대<br>
+                    <span style="font-size: 1.1rem; color: #4a5568;">AI 기술 발전 속도 >> 보안 대응 속도</span>
+                </p>
+            </div>
+        </section>
+
+
+        <!-- Slide 3: Brand Story (Why Garim?) -->
+        <section id="brand" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title" style="display: flex; align-items: center;"><img src="assets/logos/garim_good.png" alt="Garim Logo" style="height: 60px; margin-right: 1rem; width: auto;"> 왜 <span style="color: var(--accent-blue);">"가림"</span>인가?</h2>
+                <div class="section-subtitle">우리 브랜드에 담긴 철학</div>
+            </div>
+
+            <div class="clay-card">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;">
+                        가림 = <strong>"가려서 지키다"</strong>
+                    </h3>
+                    <p style="color: #4a5568; max-width: 900px; margin: 0 auto;">
+                        딥페이크라는 <strong>거짓을 가려내고</strong>,<br>
+                        사용자의 <strong>진실된 소통을 지킨다</strong>는 의미를 담았습니다.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="clay-card" style="text-align: center;">
+                        <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">👁️</div>
+                        <h3 style="color: var(--accent-blue); margin-bottom: 1.2rem;">Garim-Eye (방어)</h3>
+                        <p style="color: #718096;">
+                            실시간으로 딥페이크를 탐지하여<br>
+                            사용자를 보호하는 <strong>"눈"</strong>
+                        </p>
+                    </div>
+                    <div class="clay-card" style="text-align: center;">
+                        <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">⚔️</div>
+                        <h3 style="color: var(--accent-red); margin-bottom: 1.2rem;">Garim-Attack (검증)</h3>
+                        <p style="color: #718096;">
+                            실제 딥페이크 공격을 시뮬레이션하여<br>
+                            시스템의 신뢰성을 <strong>"검증"</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout" style="background: rgba(59, 130, 246, 0.1); border-left-color: var(--accent-blue); padding: 2rem;">
+                <p style="color: var(--accent-blue); font-weight: 700; text-align: center;">
+                    "디지털 시대, 진실을 가려내는 방패가 되겠습니다"
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 1-1: Company Intro -->
+        <section id="intro" class="slide-section" style="text-align: center; justify-content: center;">
+            <div class="clay-card" style="padding: 3rem 2rem;">
+                <span class="feature-badge blue" style="font-size: 1rem; padding: 10px 20px;">Final Project Report</span>
+                <h1 style="font-size: 4.5rem; margin: 2rem 0 1.5rem; line-height: 1.2;">
+                    디지털 소통의<br>
+                    <span class="text-gradient">무결성을 지키다</span>
+                </h1>
+                <p style="font-size: 2rem; color: #2d3748; max-width: 850px; margin: 0 auto 3rem; font-weight: 600;">
+                    <strong style="color: var(--accent-blue); font-size: 2.3rem;">가림-아이(Garim-Eye)</strong>
+                </p>
+                <p style="font-size: 1.5rem; color: #718096; margin-bottom: 3rem;">
+                    "기술로 지키고, 경험으로 깨우다"
+                </p>
+
+                <div class="grid-3" style="margin-top: 4rem; max-width: 1100px; margin-left: auto; margin-right: auto;">
+                    <div class="clay-card" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+                        <h3 style="color: var(--accent-blue); font-size: 1.4rem; margin-bottom: 1rem;">On-Device</h3>
+                        <p style="color: #718096; font-size: 1.1rem;">개인정보 서버 전송 없이<br>사용자 폰에서 즉시 분석</p>
+                    </div>
+                    <div class="clay-card" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                        <h3 style="color: var(--accent-blue); font-size: 1.4rem; margin-bottom: 1rem;">Real-time</h3>
+                        <p style="color: #718096; font-size: 1.1rem;">통화 중 실시간으로<br>딥페이크 즉시 탐지</p>
+                    </div>
+                    <div class="clay-card" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🧠</div>
+                        <h3 style="color: var(--accent-blue); font-size: 1.4rem; margin-bottom: 1rem;">User-Aware</h3>
+                        <p style="color: #718096; font-size: 1.1rem;">사용자 스스로<br>의심하고 확신하게</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+
+
+        <!-- Slide 2: Market Analysis (Competitive Landscape) -->
+        <section id="market" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">📊 시장 분석 및 경쟁 우위</h2>
+                <div class="section-subtitle">경쟁 서비스는 존재하지만, 우리만의 차별점이 있습니다</div>
+            </div>
+
+            <div class="clay-card">
+                <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;">🔍 유사 서비스 현황</h3>
+                <div class="grid-2">
+                    <div class="clay-card dark" style="display: flex; flex-direction: column;">
+                        <h4 style="color: #90cdf4; margin-bottom: 1rem;">🌐 클라우드 기반 솔루션</h4>
+                        <p style="margin-bottom: 1rem;">
+                            • Microsoft Video Authenticator<br>
+                            • Deepware Scanner<br>
+                            • Sensity AI
+                        </p>
+                        <div class="callout" style="background: rgba(239, 68, 68, 0.2); border-left-color: var(--accent-red); padding: 1rem; margin-top: auto;">
+                            <p style="font-size: 1rem; color: #fbb6ce;">
+                                <strong>문제점:</strong> 영상 업로드 필요 → 개인정보 유출 위험, 실시간 불가능
+                            </p>
+                        </div>
+                    </div>
+                    <div class="clay-card dark" style="display: flex; flex-direction: column;">
+                        <h4 style="color: #90cdf4; margin-bottom: 1rem;">📱 온디바이스 솔루션</h4>
+                        <p style="margin-bottom: 1rem;">
+                            현재 <strong style="color: var(--accent-red); font-size: 1.3rem;">사실상 부재</strong>
+                        </p>
+                        <div class="callout" style="background: rgba(16, 185, 129, 0.2); border-left-color: var(--accent-green); padding: 1rem; margin-top: auto;">
+                            <p style="font-size: 1rem; color: #6ee7b7;">
+                                <strong>가림의 기회:</strong> 실시간 + 온디바이스 + 개인정보 보호를 모두 만족하는 유일한 솔루션
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="clay-card" style="background: linear-gradient(135deg, #edf2f7 0%, #fff 100%); padding: 2rem;">
+                <h3 style="color: var(--accent-purple); margin-bottom: 1.5rem; font-size: 2rem; text-align: center;">🎯 가림의 핵심 차별점</h3>
+                <div class="grid-3" style="gap: 1.5rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                        <h4 style="color: var(--accent-blue); font-size: 1.3rem; margin-bottom: 0.8rem;">완전한 프라이버시</h4>
+                        <p style="font-size: 1rem; color: #718096;">영상 데이터 서버 전송 없음</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                        <h4 style="color: var(--accent-blue); font-size: 1.3rem; margin-bottom: 0.8rem;">실시간 탐지</h4>
+                        <p style="font-size: 1rem; color: #718096;">통화 중 즉시 경고</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🧠</div>
+                        <h4 style="color: var(--accent-blue); font-size: 1.3rem; margin-bottom: 0.8rem;">하이브리드 AI</h4>
+                        <p style="font-size: 1rem; color: #718096; font-weight: bold; cursor: pointer;">그 비결이 궁금하신가요? (Next)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2-2: On-device Necessity -->
+        <section id="on-device" class="slide-section">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <h2 class="section-title" style="font-size: 3rem;">📱 왜 온디바이스(On-device)인가?</h2>
+                <div class="section-subtitle" style="font-size: 1.3rem;">P2P(Peer-to-Peer) 환경에서 사용자를 지키는 유일한 방법</div>
+            </div>
+
+            <div class="grid-2" style="gap: 2rem;">
+                <div class="clay-card" style="padding: 2.5rem;">
+                    <h3 style="color: #e53e3e; margin-bottom: 1.5rem; font-size: 1.8rem;">🚫 서버(Cloud) 방식의 한계</h3>
+                    <ul class="spec-list" style="font-size: 1.1rem; line-height: 1.8; color: #4a5568;">
+                        <li style="margin-bottom: 1rem;">
+                            <strong>개인정보 유출 위험:</strong><br>
+                            사용자의 지극히 사적인 통화 영상이 외부 서버로 전송되어야 함.
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <strong>네트워크 지연(Latency):</strong><br>
+                            영상 전송 → 서버 분석 → 결과 수신 과정에서 수백ms 지연 발생. 실시간 대응 불가능.
+                        </li>
+                        <li>
+                            <strong>비용 문제:</strong><br>
+                            실시간 영상 처리를 위한 막대한 GPU 서버 비용 발생 (B2C 무료 제공 불가).
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); padding: 2.5rem; border-left: 6px solid var(--accent-blue);">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem; font-size: 1.8rem;">✅ 가림의 온디바이스 솔루션</h3>
+                    <ul class="spec-list" style="font-size: 1.1rem; line-height: 1.8; color: #2d3748;">
+                        <li style="margin-bottom: 1rem;">
+                            <strong>완벽한 프라이버시:</strong><br>
+                            영상 데이터가 폰 밖으로 <strong style="color: var(--accent-blue);">단 1비트도 나가지 않습니다.</strong>
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <strong>Zero Latency:</strong><br>
+                            네트워크 상태와 무관하게 <strong style="color: var(--accent-blue);">0.08초(80ms)</strong> 내에 탐지 및 경고.
+                        </li>
+                        <li>
+                            <strong>비용 효율성:</strong><br>
+                            사용자의 NPU를 활용하므로 서버 비용 0원. 지속 가능한 모델.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout" style="background: #2d3748; padding: 2rem; margin-top: 2rem; text-align: center;">
+                <p style="font-size: 1.4rem; color: #fff; font-weight: 700;">
+                    "보안을 위해 또 다른 보안 위협(서버 전송)을 만들지 않습니다."
+                </p>
+            </div>
+        </section>
+
+
+
+        <!-- Slide 6: Red vs Blue Team Flow (4-Panel Comic Structure) -->
+        <section id="system-flow" class="slide-section">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <h2 class="section-title" style="font-size: 3rem;">🎭 공격자와 피해자의 시나리오</h2>
+                <div class="section-subtitle" style="font-size: 1.3rem;">누구나 당할 수 있습니다</div>
+            </div>
+
+            <div class="grid-2" style="gap: 2rem; margin-bottom: 2rem;">
+                <!-- Victim (Blue Team) Comic -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); padding: 2rem; border-left: 6px solid var(--accent-blue);">
+                    <img src="assets/images/blue_team_scenario.png" alt="Blue Team Scenario" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div class="callout" style="background: rgba(239, 68, 68, 0.2); border-left-color: var(--accent-red); padding: 1rem; margin-top: 1.5rem;">
+                        <p style="font-size: 1.4rem; color: var(--accent-red); font-weight: 600; text-align: center;">
+                            ⚠️ 이런 피해를 막기 위해 <strong>가림-아이</strong>가 필요합니다
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Attacker (Red Team) Comic -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fff 100%); padding: 2rem; border-left: 6px solid var(--accent-red);">
+                    <img src="assets/images/red_team_scenario.png" alt="Red Team Scenario" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div class="callout" style="background: rgba(16, 185, 129, 0.2); border-left-color: #16a34a; padding: 1rem; margin-top: 1.5rem;">
+                        <p style="font-size: 1.4rem; color: #15803d; font-weight: 600; text-align: center;">
+                            💡 이렇게 쉽게 범죄가 성공합니다
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6-1: Defense Strategy (Attacker vs Defense) -->
+        <section id="defense-strategy" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">⚔️ 공격자의 시나리오에서 시작된 방어 전략</h2>
+                <div class="section-subtitle">"적을 알고 나를 알면 백전백승 (知彼知己 百戰百勝)"</div>
+            </div>
+
+            <div style="display: flex; gap: 1.5rem; height: 100%; align-items: stretch;">
+                
+                <!-- Left: The Attacker (Red) -->
+                <div class="clay-card" style="flex: 1; background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); border-left: 6px solid var(--accent-red); padding: 2rem; display: flex; flex-direction: column;">
+                    <div style="border-bottom: 2px solid #fed7d7; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                        <span class="feature-badge red">The Attacker</span>
+                        <h3 style="color: var(--accent-red); font-size: 1.8rem; margin-top: 0.5rem;">공격 시나리오</h3>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <h3 style="color: #c53030; margin-bottom: 0.5rem;">🎯 Target & Goal</h3>
+                        <p style="color: #4a5568; margin-bottom: 2rem;">
+                            <strong>지인 사칭 및 금전 갈취</strong><br>
+                            (Social Engineering via Video Call)
+                        </p>
+
+                        <h3 style="color: #c53030; margin-bottom: 0.8rem;">🔥 Attacker's Needs</h3>
+                        <ul class="spec-list" style="color: #2d3748;">
+                            <li style="margin-bottom: 1rem;">
+                                <strong>⚡ 실시간성 (Real-time):</strong><br>
+                                지연 시간 없는 즉각적인 대화
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <strong>📱 접근성 (Accessibility):</strong><br>
+                                고가의 장비 없는 일반 PC/모바일 구동
+                            </li>
+                            <li>
+                                <strong>🏹 효율성 (Efficiency):</strong><br>
+                                사진 한 장으로 끝내는 'One-shot' 방식
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Center: The Match (Arrow) -->
+                <div style="width: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="background: var(--text-color); color: white; padding: 10px; border-radius: 50%; font-size: 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">VS</div>
+                    <div style="height: 4px; width: 100%; background: #cbd5e0; position: relative;">
+                        <div style="position: absolute; right: 0; top: -8px; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 15px solid #cbd5e0;"></div>
+                    </div>
+                    <p style="text-align: center; font-size: 0.8rem; color: #718096; margin-top: 1rem; font-weight: bold;">대응 전략<br>수립</p>
+                </div>
+
+                <!-- Right: G-EYE Defense (Blue) -->
+                <div class="clay-card" style="flex: 1; background: linear-gradient(135deg, #ebf8ff 0%, #fff 100%); border-left: 6px solid var(--accent-blue); padding: 2rem; display: flex; flex-direction: column;">
+                    <div style="border-bottom: 2px solid #bee3f8; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                        <span class="feature-badge blue">G-EYE Defense</span>
+                        <h3 style="color: var(--accent-blue); font-size: 1.8rem; margin-top: 0.5rem;">전략적 선택</h3>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <h3 style="color: #2b6cb0; margin-bottom: 0.8rem;">🤖 전략적 모델 선정 (Why 'inswapper'?)</h3>
+                        <ul class="spec-list" style="color: #2d3748; margin-bottom: 2rem;">
+                            <li style="margin-bottom: 0.5rem;">
+                                <strong>공격자의 최애 도구:</strong><br>
+                                현재 가장 빠르고 정교한 One-shot 엔진 선정
+                            </li>
+                            <li>
+                                <strong>실전 타겟팅:</strong><br>
+                                연구용 고성능 모델(SOTA)이 아닌,<br>
+                                <span style="background: #bee3f8; padding: 0 4px;">실제 범죄 현장에서 쓰이는 기술</span>을 우선 타겟
+                            </li>
+                        </ul>
+
+                        <h3 style="color: #2b6cb0; margin-bottom: 0.8rem;">📊 데이터셋 구축 전략</h3>
+                        <ul class="spec-list" style="color: #2d3748;">
+                            <li style="margin-bottom: 0.5rem;">
+                                <strong>환경의 일치 (Realism):</strong><br>
+                                스튜디오가 아닌, 저화질/조명/흔들림 등<br>
+                                <span style="background: #bee3f8; padding: 0 4px;">'열악한 통화 환경'</span> 집중 재현
+                            </li>
+                            <li>
+                                <strong>결함 포착 (Defects):</strong><br>
+                                실시간 합성의 약점(프레임 불일치, 경계면) 학습
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Slide 7: Full System Architecture (Detection Flow) -->
+        <section id="architecture" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">🏭️ 가림-아이 탐지 아키텍처</h2>
+                <div class="section-subtitle" style="color: var(--accent-blue); font-weight: 700;">⚡ 실시간 신뢰도 분석 플로우</div>
+            </div>
+
+            <div style="max-width: 1200px; margin: 0 auto; width: 100%;">
+                
+                <!-- Flow Diagram -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Step 1: Video Capture -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #f3f4f6 0%, #fff 100%); border-left: 4px solid #6366f1;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="background: #6366f1; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; flex-shrink: 0;">1</div>
+                            <div>
+                                <h4 style="color: #6366f1; margin-bottom: 0.5rem;">📹 실시간 영상 캡처</h4>
+                                <p style="color: #4a5568; margin: 0;">
+                                    WebRTC 화상통화 중 영상 프레임을 실시간으로 추출 (20fps)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Dual Analysis -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fff 100%); border-left: 4px solid #f59e0b;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="background: #f59e0b; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; flex-shrink: 0;">2</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: #f59e0b; margin-bottom: 0.8rem;">🔬 하이브리드 이중 분석</h4>
+                                <div class="grid-2" style="gap: 1rem;">
+                                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                        <strong style="color: var(--accent-blue);">① FFT 주파수 분석</strong>
+                                        <p style="color: #718096; margin-top: 0.5rem; margin-bottom: 0;">
+                                            주파수 도메인에서 GAN 아티팩트 검출 (0.05초)
+                                        </p>
+                                    </div>
+                                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                        <strong style="color: var(--accent-purple);">② CNN+LSTM 딥러닝</strong>
+                                        <p style="color: #718096; margin-top: 0.5rem; margin-bottom: 0;">
+                                            시계열 특징 분석 및 부자연스러움 탐지
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Score Calculation -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); border-left: 4px solid var(--accent-blue);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="background: var(--accent-blue); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; flex-shrink: 0;">3</div>
+                            <div>
+                                <h4 style="color: var(--accent-blue); margin-bottom: 0.5rem;">📊 신뢰도 점수 산출</h4>
+                                <p style="color: #4a5568; margin: 0;">
+                                    FFT + CNN 점수를 가중 평균하고, EMA(지수 이동 평균) 적용하여 최종 신뢰도 계산 (0-100점)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: User Alert -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fff 100%); border-left: 4px solid var(--accent-red);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="background: var(--accent-red); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; flex-shrink: 0;">4</div>
+                            <div>
+                                <h4 style="color: var(--accent-red); margin-bottom: 0.5rem;">🚨 사용자에게 의심 유도</h4>
+                                <p style="color: #4a5568; margin: 0;">
+                                    <strong>SAFE (70~100)</strong>: 정상 / <strong>WARNING (30~69)</strong>: 주의 문구 / <strong>DANGER (0~29)</strong>: 강력 경고 UI
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout" style="background: rgba(59, 130, 246, 0.1); border-left-color: var(--accent-blue); padding: 2rem;">
+                <h4 style="text-align: center; color: var(--accent-blue); font-size: 1.5rem; margin-bottom: 1rem;">
+                    🔄 WebRTC 기반 실시간 화상통화 환경 구현
+                </h4>
+                <p style="text-align: center; font-size: 1.1rem; color: #4a5568; line-height: 1.8; margin: 0;">
+                    실제 화상통화 프로토콜(WebRTC P2P)을 사용하여<br>
+                    현실과 동일한 조건에서 공격 시뮬레이션 및 방어 테스트 진행
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 6-1: Interaction Logic -->
+        <section id="interaction" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">능동적 검증 (Interactive Verification)</h2>
+                <div class="section-subtitle">"단순한 수치 제공을 넘어, 사용자가 직접 의심하고 확인하게 만듭니다."</div>
+            </div>
+
+            <div class="clay-card">
+                <div class="grid-2">
+                    <div>
+                        <h3 style="color: var(--accent-blue);">🤝 Human-in-the-loop Security</h3>
+                        <p style="margin-top: 1rem; color: #4a5568;">
+                            AI 탐지 모델이 100% 완벽할 수는 없습니다. <br>
+                            가림아이(Garim Eye)는 기술적 탐지 결과를 근거로 <strong>사람의 직관(Intuition)</strong>을 개입시켜 최종 판단을 내리는 <strong>하이브리드 검증 시스템</strong>입니다.
+                        </p>
+                    </div>
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; text-align: center; border: 2px dashed #cbd5e0;">
+                        <span style="font-size: 0.9rem; color: #718096; display: block; margin-bottom: 1rem;">Conventional vs Garim</span>
+                        <div style="display: flex; justify-content: space-around; font-weight: bold;">
+                            <div style="opacity: 0.5;">
+                                <div>Other Apps</div>
+                                <div style="color: red; margin-top: 0.5rem;">"Fake Probability: 92%"</div>
+                                <div style="font-size: 0.8rem; font-weight: normal;">(사용자의 불안감만 조성)</div>
+                            </div>
+                            <div style="border-left: 2px solid #e2e8f0;"></div>
+                            <div>
+                                <div style="color: var(--accent-blue);">Garim Eye</div>
+                                <div style="color: var(--accent-blue); margin-top: 0.5rem;">"손을 흔들어 보세요"</div>
+                                <div style="font-size: 0.8rem; font-weight: normal;">(구체적인 행동 지침 제공)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-3" style="margin-top: 2rem;">
+                <div class="clay-card">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✋</div>
+                    <h4>1. Occlusion Test</h4>
+                    <p style="font-size: 0.9rem; color: #718096;">"얼굴 앞으로 손을 흔들어보라고 하세요."</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: #4a5568;">
+                        대부분의 실시간 딥페이크 모델은 얼굴 앞에 물체가 지나갈 때(가림 현상) 합성이 풀리는 취약점이 있습니다.
+                    </p>
+                </div>
+                <div class="clay-card">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+                    <h4>2. Profile Check</h4>
+                    <p style="font-size: 0.9rem; color: #718096;">"고개를 좌우로 천천히 돌려보세요."</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: #4a5568;">
+                        정면 얼굴 데이터로만 학습된 저가형 피싱 모델은 측면(Profile)에서 급격히 화질이 무너집니다.
+                    </p>
+                </div>
+                <div class="clay-card">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💡</div>
+                    <h4>3. Lighting Shift</h4>
+                    <p style="font-size: 0.9rem; color: #718096;">"휴대폰 조명을 켜보세요."</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: #4a5568;">
+                        실제 얼굴은 조명 변화에 따라 그림자가 자연스럽게 변하지만, 합성된 얼굴은 그림자가 고정되어 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Slide 8: Garim-Eye Overview -->
+        <section id="garim-eye-overview" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">Garim-Eye: 지능형 방어 클라이언트</h2>
+                <div class="section-subtitle">고성능 탐지 엔진과 시스템 최적화의 결합</div>
+            </div>
+
+            <div class="clay-card" style="margin-bottom: 2rem;">
+                <h3 style="text-align: center; color: var(--accent-blue); margin-bottom: 2rem;">📱 앱 데이터 처리 흐름 및 최적화</h3>
+                
+                <!-- Simplified Flow with Integrated Optimization Highlights -->
+                <div class="flow-diagram" style="justify-content: center; padding: 1rem;">
+                    <!-- Input Stage -->
+                    <div style="text-align: center;">
+                        <div class="feature-badge" style="margin: 0 auto 1rem; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">📹</div>
+                        <strong>카메라 입력</strong>
+                        <div style="font-size: 0.8rem; color: #718096; margin-top: 0.5rem; background: #e2e8f0; padding: 4px; border-radius: 4px;">Zero-Copy 리사이징</div>
+                    </div>
+                    
+                    <div class="flow-arrow"></div>
+
+                    <!-- Processing Stage -->
+                    <div style="text-align: center;">
+                        <div class="feature-badge blue" style="margin: 0 auto 1rem; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">⚙️</div>
+                        <strong>전처리 (Preprocessing)</strong>
+                        <div style="font-size: 0.8rem; color: #718096; margin-top: 0.5rem; background: #bee3f8; padding: 4px; border-radius: 4px;">텐서 레이아웃 변환<br>(HWC → CHW)</div>
+                    </div>
+
+                    <div class="flow-arrow"></div>
+
+                    <!-- Inference Stage -->
+                    <div style="text-align: center;">
+                        <div class="feature-badge purple" style="margin: 0 auto 1rem; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🧠</div>
+                        <strong>CoreML NPU 가속</strong>
+                        <div style="font-size: 0.8rem; color: #718096; margin-top: 0.5rem; background: #d6bcfa; padding: 4px; border-radius: 4px;">적응형 발열 제어<br>(Thermal Control)</div>
+                    </div>
+
+                    <div class="flow-arrow"></div>
+
+                    <!-- Output Stage -->
+                    <div style="text-align: center;">
+                        <div class="feature-badge red" style="margin: 0 auto 1rem; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🛡️</div>
+                        <strong>실시간 방어</strong>
+                        <div style="font-size: 0.8rem; color: #718096; margin-top: 0.5rem; background: #feb2b2; padding: 4px; border-radius: 4px;">즉각 경고 알림</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Optimization 1: Pipeline -->
+                <div class="clay-card">
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">⚡ 입력 파이프라인 최적화 (Input Pipeline)</h4>
+                    <p style="font-size: 0.95rem; color: #4a5568; line-height: 1.6;">
+                        <strong>Zero-Copy Resize:</strong> iOS vImage 프레임워크를 사용하여 YUV 데이터를 2ms 만에 변환 및 리사이징.<br>
+                        <strong>Memory Layout:</strong> NPU가 선호하는 CHW 포맷으로 입력 단계에서 미리 변환하여 추론 부하 제거.
+                    </p>
+                </div>
+
+                <!-- Optimization 2: Thermal -->
+                <div class="clay-card">
+                    <h4 style="color: #e53e3e; margin-bottom: 1rem;">🌡️ 적응형 발열 제어 (Adaptive Thermal Control)</h4>
+                    <p style="font-size: 0.95rem; color: #4a5568; line-height: 1.6;">
+                        <strong>Dynamic Interval:</strong> 기기 발열 상태에 따라 추론 주기를 1.25s ~ 10s로 자동 조절.<br>
+                        <strong>Smart Wake-up:</strong> 이상 징후(FFT) 감지 시 즉시 'Burst Mode'로 전환하여 정밀 방어 수행.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 9: Dataset Composition -->
+        <section id="dataset" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">데이터셋 구축 (Dataset Construction)</h2>
+                <div class="section-subtitle">한국인 얼굴 중심의 고품질 학습 데이터 / 4단계 파이프라인</div>
+            </div>
+
+            <div class="grid-2" style="gap: 2rem;">
+                <!-- Stage 1: AI-Hub Raw Data -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); padding: 2rem; border-left: 4px solid var(--accent-blue);">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.2rem;">📦 Stage 1: AI-Hub 원본 데이터 확보</h4>
+                        <ul class="spec-list" style="font-size: 1.05rem; line-height: 1.7;">
+                            <li><strong>영상:</strong> AI-Hub 딥페이크 변조영상 248개 </li>
+                            <li><strong>이미지:</strong> 한국인 안면 랜드마크 이미지 2,250장</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 2: Quality Enhancement -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #e0e7ff 0%, #fff 100%); padding: 2rem; border-left: 4px solid var(--accent-purple);">
+                        <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.2rem;">🎭 Stage 2: 영상 전처리 (Quality Enhancement)</h4>
+                        <p style="margin-bottom: 1rem; font-size: 1.05rem; line-height: 1.7;">
+                            <strong>Step1:</strong> 30초 영상을 10초씩 분할 → 496개 영상 확보<br>
+                            <strong>Step2:</strong> 최종 얼굴 크롭영상 획득<br>
+                            <strong>Step3:</strong> 네트워크 환경 대응 3가지 화질 생성<br>
+                            <strong>Step4:</strong> Flip, Network Stress, Beauty Filter
+                        </p>
+                    </div>
+
+                    <!-- Stage 3: Deepfake Generation -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fff 100%); padding: 2rem; border-left: 4px solid #f59e0b;">
+                        <h4 style="color: #d97706; margin-bottom: 1rem; font-size: 1.2rem;">🤖 Stage 3: 딥페이크 영상 생성</h4>
+                        <ul class="spec-list" style="font-size: 1.05rem; line-height: 1.7;">
+                            <li><strong>도구:</strong> Inswapper (One-shot Face Swapping)</li>
+                            <li><strong>생성:</strong> Google Colab에서 위의 이미지 전체 동원 생성</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 4: Final Dataset -->
+                    <div class="clay-card" style="background: linear-gradient(135deg, #dcfce7 0%, #fff 100%); padding: 2rem; border-left: 4px solid var(--accent-green);">
+                        <h4 style="color: var(--accent-green); margin-bottom: 1rem; font-size: 1.2rem;">✅ Stage 4: 최종 데이터셋</h4>
+                        <div style="display: flex; justify-content: space-around; align-items: center; margin: 1.5rem 0;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2.8rem; color: var(--accent-blue); font-weight: bold;">5,952</div>
+                                <div style="font-size: 1.1rem; color: #718096;">Real Videos</div>
+                            </div>
+                            <div style="font-size: 2.2rem; color: #e2e8f0;">+</div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2.8rem; color: var(--accent-red); font-weight: bold;">5,952</div>
+                                <div style="font-size: 1.1rem; color: #718096;">Fake Videos</div>
+                            </div>
+                        </div>
+                        <p style="text-align: center; font-size: 0.95rem; color: #4a5568; margin-top: 1rem;">
+                            <strong>Split Ratio:</strong> Train(80%: 4,800개) : Validation(10%: 576개) : Test(10%: 576개)
+                        </p>
+                    </div>
+                </div>
+        </section>
+
+        <!-- Slide 10: FFT Page 1 - 주파수로 분해하는 기술 -->
+        <section id="fft-1" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">FFT: 영상 데이터를 '주파수'라는 성분으로 분해하는 기술</h2>
+                <div class="section-subtitle">이미지를 주파수 성분으로 변환 (루미에 변환)</div>
+            </div>
+
+            <div class="grid-2">
+                <!-- FFT 설명 -->
+                <!-- FFT 설명 -->
+                <div class="clay-card">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;">🌊 1D-Power Spectrum</h3>
+                    <div style="background: #f7fafc; padding: 1.5rem; border-radius: 12px; border-left: 4px solid var(--accent-blue); margin-bottom: 2rem;">
+                        <p style="line-height: 1.6; color: #2d3748;">
+                            <strong>이미지를 주파수 성분으로 변환</strong><br>
+                            (퓨리에 변환)
+                        </p>
+                    </div>
+                    <img src="assets/images/fft/1d_power_spectrum.png" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" alt="1D Power Spectrum">
+                </div>
+
+               <!-- FFT 활용 전략 -->
+               <!-- FFT 활용 전략 -->
+                <div class="clay-card">
+                    <h3 style="color: var(--accent-purple); margin-bottom: 1.5rem;">🎯 FFT 활용 전략</h3>
+                    <p style="margin-bottom: 1rem; font-weight: 600; color: #2d3748;">
+                        "단 하나의 가짜도 놓치지 않는다"
+                    </p>
+                    <p style="line-height: 1.6; color: #4a5568; margin-bottom: 2rem;">
+                        <strong>FFT ANALYSIS (10%)</strong> ―― <strong>AI MODEL (90%) 🤖</strong>
+                    </p>
+                    <img src="assets/images/fft/fft_analysis.png" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" alt="FFT Analysis Strategy">
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Slide 11: FFT Page 2 - 사용한 FFT 분석 로직 (1~2단계) -->
+        <section id="fft-2" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">사용한 FFT 분석 로직:</h2>
+                <div class="section-subtitle">1단계: 디지털 지문 채취 / 2단계: 화질별 상대 평가</div>
+            </div>
+
+            <div class="grid-2">
+                <!-- 1단계: analyze_face_fft -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); border-left: 4px solid var(--accent-blue);">
+                    <h4 style="color: var(--accent-blue); margin-bottom: 1.5rem;">1단계: [함수 1] analyze_face_fft - "디지털 지문 채취"</h4>
+                    <p style="margin-bottom: 1.5rem; line-height: 1.8; color: #2d3748;">
+                        이 함수는 영상의 얼굴 이미지를 받아 <strong>'인간의 피부인지, AI의 가공물인지'</strong>를 수치로 변환합니다.
+                    </p>
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <p style="font-size: 0.9rem; line-height: 1.7; color: #4a5568;">
+                            • Power Spectrum 계산 및 정규화<br>
+                            • 고주파 영역 에너지 측정<br>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2단계: get_base_confidence -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #e0e7ff 0%, #fff 100%); border-left: 4px solid var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1.5rem;">2단계: [함수 2] get_base_confidence - "화질별 상대 평가"</h4>
+                    <p style="margin-bottom: 1.5rem; line-height: 1.8; color: #2d3748;">
+                        "고화질 가짜가 저화질 진짜보다 점수가 높을 수 있다"는 문제를 해결하는 로직입니다.
+                    </p>
+                    <p style="font-size: 0.95rem; color: #4a5568; line-height: 1.7;">
+                        각 화질 체급에서 <strong>'나올 수 있는 최상의 선명도'</strong>를 기준으로 상대적인 점수(0~10점)를 매깁니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 데이터 기반 임계값 설정 근거 -->
+            <div class="clay-card" style="padding: 2rem; margin-top: 2rem;">
+                <h4 style="text-align: center; margin-bottom: 1.5rem; color: #2d3748;">【데이터 기반 임계값(Threshold) 설정 근거】</h4>
+                <p style="text-align: center; margin-bottom: 1.5rem; color: #718096; font-size: 0.95rem;">
+                    신뢰도 산출의 기초가 되는 화질별 기준값은 약 10,000개의 영상 데이터셋에 대한 전수 조사를 통해 얻은 FFT Score를 기반으로 도출되었습니다.
+                </p>
+
+                <table style="width: 100%; border-collapse: collapse; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 12px; overflow: hidden; margin-top: 1.5rem;">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: center;">화질</th>
+                            <th style="padding: 1rem; text-align: center;">허한선(Low)</th>
+                            <th style="padding: 1rem; text-align: center;">기준선(Mid)</th>
+                            <th style="padding: 1rem; text-align: center;">상한선(High)</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background: white;">
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 1rem; text-align: center; font-weight: 600;">360p</td>
+                            <td style="padding: 1rem; text-align: center;">800점</td>
+                            <td style="padding: 1rem; text-align: center;">1100점</td>
+                            <td style="padding: 1rem; text-align: center;">1750점</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: #f7fafc;">
+                            <td style="padding: 1rem; text-align: center; font-weight: 600;">480p</td>
+                            <td style="padding: 1rem; text-align: center;">850점</td>
+                            <td style="padding: 1rem; text-align: center;">1250점</td>
+                            <td style="padding: 1rem; text-align: center;">1850점</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 1rem; text-align: center; font-weight: 600;">608p</td>
+                            <td style="padding: 1rem; text-align: center;">900점</td>
+                            <td style="padding: 1rem; text-align: center;">1400점</td>
+                            <td style="padding: 1rem; text-align: center;">1950점</td>
+                        </tr>
+                        <tr style="background: #f7fafc;">
+                            <td style="padding: 1rem; text-align: center; font-weight: 600;">720p</td>
+                            <td style="padding: 1rem; text-align: center;">1000점</td>
+                            <td style="padding: 1rem; text-align: center;">1600점</td>
+                            <td style="padding: 1rem; text-align: center;">2100점</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Slide 12: FFT Page 3 - 사용한 FFT 분석 로직 (3단계) -->
+        <section id="fft-3" class="slide-section">
+            <div class="section-header">
+                <h3 class="section-title">사용한 FFT 분석 로직:</h3>
+                <div class="section-subtitle">3단계: 냉혹한 보안관 (Final Trust Score)</div>
+            </div>
+
+            <!-- 3단계: get_final_trust_score -->
+            <div class="clay-card">
+                <h3 style="color: var(--accent-red); margin-bottom: 2rem;">3단계: [함수 3] get_final_trust_score - "냉혹한 보안관"</h3>
+                <p style="margin-bottom: 2rem; line-height: 1.9; color: #2d3748;">
+                    기초 점수가 높게 나와도 수상한 흔적이 보이면 가차 없이 점수를 깎아버리는 최종 관문입니다.
+                </p>
+
+                <div style="background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <div style="margin-bottom: 2.5rem;">
+                        <h4 style="color: #2d3748; margin-bottom: 1rem;">🔍 필터 1: 질감 페널티 (Texture Penalty)</h4>
+                        <p style="color: #4a5568; padding-left: 1.5rem; line-height: 1.8;">
+                            점수가 높아도 피부가 도자기처럼 너무 매끈하면 <strong>(avg_var < 5000)</strong>, "너 AI지?" 하고 점수를 <strong style="color: var(--accent-red);">30% 깎습니다.</strong>
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 2.5rem;">
+                        <h4 style="color: #2d3748; margin-bottom: 1rem;">📊 필터 2: 안정성 페널티 (Stability Penalty)</h4>
+                        <p style="color: #4a5568; padding-left: 1.5rem; line-height: 1.8;">
+                            프레임마다 선명도가 들쑥날쑥하면 <strong>(std > 15%)</strong>, "합성이 불안정하네?" 하고 점수를 <strong style="color: var(--accent-red);">반토막(50%) 냅니다.</strong>
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #2d3748; margin-bottom: 1rem;">🔒 필터 3: Safety Lock (확정)</h4>
+                        <p style="color: #4a5568; padding-left: 1.5rem; line-height: 1.8;">
+                            점수가 7점을 넘으려 할 때, 조금이라도 의심스러우면 <strong style="color: var(--accent-red);">강제로 6.9점에 가둡니다.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 13: FFT Page 4 - 사용한 FFT 분석 로직 (4~5단계) -->
+        <section id="fft-4" class="slide-section">
+            <div class="section-header">
+                <h3 class="section-title">사용한 FFT 분석 로직:</h3>
+                <div class="section-subtitle">4단계: 실행 루프 / 5단계: 분석 결과 적용</div>
+            </div>
+
+            <div class="grid-2">
+                <!-- 4단계: 실행 루프 -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); border-left: 4px solid var(--accent-blue);">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 2rem;">🔄 4단계: 실행 루프</h3>
+                    <p style="color: var(--accent-blue); font-weight: 600;">
+                        📹 샘플링 방식: 5프레임
+                    </p>
+                    <p style="margin-top: 1rem; color: #4a5568; line-height: 1.7;">
+                        영상에서 5개 프레임을 추출하여 FFT 분석을 수행하고, 평균 신뢰도를 계산합니다.
+                    </p>
+                    
+                    <!-- 코드 박스 -->
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; border: 1px solid #e2e8f0;">
+                        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; font-weight: 600;"># 5프레임 샘플링 분석</p>
+                        <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 0.95rem; line-height: 1.6; color: #1e293b;"><span style="color: #64748b;">f_scores, f_vars = [], []</span>
+<span style="color: #0ea5e9;">for</span> _ <span style="color: #0ea5e9;">in</span> <span style="color: #a855f7;">range</span>(<span style="color: #f59e0b;">5</span>):
+    ret, frame = cap.<span style="color: #f43f5e;">read</span>()
+    <span style="color: #0ea5e9;">if</span> ret:
+        s, v = <span style="color: #f43f5e;">analyze_face_fft</span>(frame)
+        f_scores.<span style="color: #f43f5e;">append</span>(s); f_vars.<span style="color: #f43f5e;">append</span>(v)
+cap.<span style="color: #f43f5e;">release</span>()</pre>
+                    </div>
+                </div>
+
+                <!-- 5단계: 분석 결과 적용 -->
+                <div class="clay-card" style="background: linear-gradient(135deg, #dcfce7 0%, #fff 100%); border-left: 4px solid var(--accent-green);">
+                    <h3 style="color: var(--accent-green); margin-bottom: 2rem;">✅ 5단계: 분석 결과 적용</h3>
+                    <p style="line-height: 1.9; color: #2d3748; margin-bottom: 1.5rem;">
+                        최종 신뢰도 점수를 바탕으로 시스템 동작 모드를 결정합니다.
+                    </p>
+                    <div style="background: white; padding: 1.8rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <p style="color: #2d3748; line-height: 2; font-weight: 500;">
+                            • <strong style="color: var(--accent-purple);">10.0</strong> → Ultra Pass <span style="color: #718096;">(Skip Stage 2)</span><br>
+                            • <strong style="color: var(--accent-blue);">7.0-9.9</strong> → Safe Real <span style="color: #718096;">(Stage 2)</span><br>
+                            • <strong style="color: #f59e0b;">3.0-6.9</strong> → Analysis Zone <span style="color: #718096;">(Stage 2)</span><br>
+                            • <strong style="color: var(--accent-red);">0.0-2.9</strong> → High Risk <span style="color: #718096;">(Stage 2)</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 14: Model Architecture Page 1 - Structure -->
+        <section id="model-arch-1" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">Model Architecture: 하이브리드 구조</h2>
+                <div class="section-subtitle">MobileNetV2 + LSTM Hybrid Network</div>
+            </div>
+
+            <div class="clay-card" style="padding: 3rem;">
+                <!-- 5-Box Horizontal Flow -->
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 3rem;">
+                    <!-- Box 1: Video Input -->
+                    <div class="clay-card" style="flex: 1; padding: 2rem; text-align: center; background: linear-gradient(135deg, #dbeafe 0%, #fff 100%); border-top: 4px solid var(--accent-blue);">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📹</div>
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.1rem;">Video Input</h4>
+                        <p style="font-size: 0.85rem; color: #4a5568; line-height: 1.5;">
+                            <strong>(20, 224, 224, 3)</strong>
+                        </p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="font-size: 2rem; color: #cbd5e0;">→</div>
+
+                    <!-- Box 2: MobileNetV2 -->
+                    <div class="clay-card" style="flex: 1; padding: 2rem; text-align: center; background: linear-gradient(135deg, #e0e7ff 0%, #fff 100%); border-top: 4px solid var(--accent-purple);">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🧠</div>
+                        <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.1rem;">MobileNetV2</h4>
+                        <p style="font-size: 0.85rem; color: #4a5568; line-height: 1.5;">
+                            각 프레임의 시각적 특징 추출<br>
+                            <strong>ImageNet Backbone</strong>
+                        </p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="font-size: 2rem; color: #cbd5e0;">→</div>
+
+                    <!-- Box 3: Global Average Pooling -->
+                    <div class="clay-card" style="flex: 1; padding: 2rem; text-align: center; background: linear-gradient(135deg, #fef3c7 0%, #fff 100%); border-top: 4px solid #f59e0b;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📊</div>
+                        <h4 style="color: #d97706; margin-bottom: 1rem; font-size: 1.1rem;">Global Avg Pooling</h4>
+                        <p style="font-size: 0.85rem; color: #4a5568; line-height: 1.5;">
+                            특징맵 → Vector<br>
+                            <strong>차원 압축</strong>
+                        </p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="font-size: 2rem; color: #cbd5e0;">→</div>
+
+                    <!-- Box 4: LSTM -->
+                    <div class="clay-card" style="flex: 1; padding: 2rem; text-align: center; background: linear-gradient(135deg, #dcfce7 0%, #fff 100%); border-top: 4px solid var(--accent-green);">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">⏱️</div>
+                        <h4 style="color: var(--accent-green); margin-bottom: 1rem; font-size: 1.1rem;">LSTM</h4>
+                        <p style="font-size: 0.85rem; color: #4a5568; line-height: 1.5;">
+                            시간적 상관관계 분석<br>
+                            <strong>64 Units</strong>
+                        </p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="font-size: 2rem; color: #cbd5e0;">→</div>
+
+                    <!-- Box 5: Decision Head -->
+                    <div class="clay-card" style="flex: 1; padding: 2rem; text-align: center; background: linear-gradient(135deg, #fee2e2 0%, #fff 100%); border-top: 4px solid var(--accent-red);">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎯</div>
+                        <h4 style="color: var(--accent-red); margin-bottom: 1rem; font-size: 1.1rem;">Decision Head</h4>
+                        <p style="font-size: 0.85rem; color: #4a5568; line-height: 1.5;">
+                            Real vs Fake<br>
+                            <strong>Sigmoid Output</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Detailed Specs Below -->
+                <div class="grid-3" style="gap: 1.5rem;">
+                    <div class="clay-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-blue);">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 0.75rem; font-size: 1rem;">📥 Input Spec</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #4a5568;">
+                            <li>• 20 Frames (연속 프레임)</li>
+                            <li>• 224×224 Resolution</li>
+                            <li>• RGB 3 Channels</li>
+                        </ul>
+                    </div>
+
+                    <div class="clay-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-green);">
+                        <h4 style="color: var(--accent-green); margin-bottom: 0.75rem; font-size: 1rem;">⚙️ Architecture</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #4a5568;">
+                            <li>• TimeDistributed CNN</li>
+                            <li>• LSTM (64 units)</li>
+                            <li>• Dropout(0.5) + Dense</li>
+                        </ul>
+                    </div>
+
+                    <div class="clay-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-red);">
+                        <h4 style="color: var(--accent-red); margin-bottom: 0.75rem; font-size: 1rem;">📤 Output</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #4a5568;">
+                            <li>• Sigmoid Activation</li>
+                            <li>• 0.0 (Real) ~ 1.0 (Fake)</li>
+                            <li>• Binary Classification</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 15: Model Architecture Page 2 - Optimization & Troubleshooting -->
+        <section id="model-arch-2" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">최적화 및 트러블슈팅</h2>
+                <div class="section-subtitle">온디바이스 탐지 모델의 도전과 해결 전략</div>
+            </div>
+
+            <div class="clay-card" style="padding: 2.5rem;">
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 2rem; box-shadow: var(--clay-shadow-out); border-radius: 12px; overflow: hidden;">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: left; width: 35%;">Challenges</th>
+                            <th style="padding: 1rem; text-align: left;">Strategies</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: white;">
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-red);">1. 클래스 불균형 및 오판 발생</strong>
+                                <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem;">
+                                    초기 모델이 진짜(Real) 영상을 가짜로 오판하는 경향, 실생활 사용성 저하 우려
+                                </p>
+                            </td>
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-green);">정밀 미세 조정 (Fine-tuning)</strong>
+                                <p style="font-size: 0.9rem; color: #4a5568; margin-top: 0.5rem;">
+                                    • 기초 특징 보존, 딥페이크 특유 이상징후만 학습<br>
+                                    • <strong>상위 5개 레이어만 Unfreeze</strong><br>
+                                    • Class Weight: Real 데이터에 <strong>2.0배 가중치</strong><br>
+                                    • Low LR: <strong>10<sup>-5</sup></strong> 적용
+                                </p>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: #f7fafc;">
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-red);">2. Core ML 변환 호환성 문제</strong>
+                                <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem;">
+                                    Keras 모델 직접 변환 시 레이어 이름 충돌 및 시퀀스 데이터 처리 오류 발생
+                                </p>
+                            </td>
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-green);">SavedModel 경유 변환</strong>
+                                <p style="font-size: 0.9rem; color: #4a5568; margin-top: 0.5rem;">
+                                    • 직접 변환 대신 <strong>SavedModel 포맷</strong> 경유<br>
+                                    • 안정적 변환 파이프라인 구축
+                                </p>
+                            </td>
+                        </tr>
+                        <tr style="background: white;">
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-red);">3. 모바일 리소스 제약</strong>
+                                <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem;">
+                                    고용량 모델 구동 시 메모리 점유율 상승 및 추론 속도 저하 문제
+                                </p>
+                            </td>
+                            <td style="padding: 1.5rem; vertical-align: top;">
+                                <strong style="color: var(--accent-green);">Int8 선형 양자화</strong>
+                                <p style="font-size: 0.9rem; color: #4a5568; margin-top: 0.5rem;">
+                                    • 모델 용량 <strong>75% 절감</strong><br>
+                                    • 추론 속도 향상 (약 250ms)<br>
+                                    • 정확도 손실 최소화 (2% 이내)
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #e0e7ff 0%, #fff 100%); border-radius: 12px; border-left: 4px solid var(--accent-blue);">
+                    <p style="font-size: 1.1rem; color: #2d3748; text-align: center; font-weight: 600;">
+                        <strong>Input Spec:</strong> 224×224, 20 Frames | 
+                        <strong>Optimizer:</strong> Adam (10<sup>-5</sup>)
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 16: Model Architecture Page 3 - Final Performance Evaluation -->
+        <section id="model-arch-3" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">최종 성능 평가</h2>
+                <div class="section-subtitle">Keras (원본) vs Core ML (최종) 성능 비교</div>
+            </div>
+
+            <div class="clay-card" style="padding: 2.5rem;">
+                <h3 style="margin-bottom: 1.5rem; color: #2d3748; text-align: center;">📊 Performance Comparison</h3>
+                <table style="width: 100%; border-collapse: collapse; box-shadow: var(--clay-shadow-out); border-radius: 12px; overflow: hidden;">
+                    <thead style="background: linear-gradient(135deg, #4299e1 0%, #667eea 100%); color: white;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: left;">구분</th>
+                            <th style="padding: 1rem; text-align: center;">Keras (원본)</th>
+                            <th style="padding: 1rem; text-align: center;">Core ML (최종)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: white;">
+                            <td style="padding: 1rem;"><strong>정확도 (Accuracy)</strong></td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold;">90.36%</td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold; color: var(--accent-blue);">88.97%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: #f7fafc;">
+                            <td style="padding: 1rem;"><strong>Real 정답 수</strong><br><span style="font-size: 0.85rem; color: #718096;">( / 575개)</span></td>
+                            <td style="padding: 1rem; text-align: center;">508개</td>
+                            <td style="padding: 1rem; text-align: center; color: var(--accent-green); font-weight: bold;">519개 (개선됨 ✓)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background: white;">
+                            <td style="padding: 1rem;"><strong>Fake 정답 수</strong><br><span style="font-size: 0.85rem; color: #718096;">( / 576개)</span></td>
+                            <td style="padding: 1rem; text-align: center;">532개</td>
+                            <td style="padding: 1rem; text-align: center;">505개</td>
+                        </tr>
+                        <tr style="background: #f7fafc;">
+                            <td style="padding: 1rem;"><strong>F1-Score</strong><br><span style="font-size: 0.85rem; color: #718096;">(Fake 기준)</span></td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold;">0.91</td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold;">0.89</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #e0f2fe 0%, #fff 100%); border-radius: 12px; border-left: 4px solid var(--accent-blue);">
+                    <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">💡 Key Insights</h4>
+                    <ul style="list-style: none; padding: 0; font-size: 0.95rem; color: #4a5568;">
+                        <li style="margin-bottom: 0.5rem;">✓ CoreML 변환 후 전체 정확도 <strong>1.39%p 감소</strong></li>
+                        <li style="margin-bottom: 0.5rem;">✓ Real 탐지 성능 향상: <strong>508→519개 정답</strong> (오탐 감소)</li>
+                        <li style="margin-bottom: 0.5rem;">✓ 온디바이스 추론 속도: <strong>평균 650ms→250ms</strong> (실시간 구동 가능)</li>
+                        <li>✓ 모델 용량: Int8 양자화로 <strong>75% 절감</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+
+
+
+
+
+        <!-- Slide 18: Garim-Attack (Verification Tool) -->
+        <section id="garim-attack" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">검증 도구: 가상 공격 시뮬레이터</h2>
+                <div class="section-subtitle">"적을 알아야 막을 수 있다" - 딥페이크 공격 시뮬레이터</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="clay-card">
+                    <img src="assets/images/garim_attack_dashboard.png" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 1rem;" alt="Garim Attack Dashboard">
+                    <p style="font-size: 0.85rem; color: #718096; text-align: center;">[Figure] Attacker's Dashboard</p>
+                </div>
+                <div class="clay-card">
+                    <h3 style="color: var(--accent-red); margin-bottom: 1rem;">🔴 Garim-Attack</h3>
+                    <p style="margin-bottom: 1.5rem; line-height: 1.6;">
+                        Garim-Eye(방어)의 성능을 검증하기 위해, 우리는 <strong>실제 피싱범과 동일한 환경</strong>을 구축했습니다.
+                    </p>
+                    <ul class="spec-list">
+                        <li>
+                            <strong>WebRTC P2P 기반:</strong><br>
+                            정지 영상(mp4)이 아닌, 네트워크 패킷 손실과 지연이 발생하는 <strong>실시간 스트리밍 환경</strong>에서 공격을 시도합니다.
+                        </li>
+                        <li>
+                            <strong>Real-time Face Swap:</strong><br>
+                            서버 사이드 렌더링을 통해 고화질 딥페이크 영상을 피해자에게 전송합니다.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top: 2rem;">
+                <div class="clay-card" style="padding: 1rem; border-left: 4px solid var(--accent-red);">
+                    <h4 style="color: var(--accent-red);">Phase 1: Attack Initiated</h4>
+                    <p style="font-size: 0.9rem; color: #4a5568;">공격자가 Face Swap을 켜고 통화를 시도합니다. 육안으로는 구별이 불가능합니다.</p>
+                </div>
+                <div class="clay-card" style="padding: 1rem; border-left: 4px solid var(--accent-green);">
+                    <h4 style="color: var(--accent-green);">Phase 2: Defense Active</h4>
+                    <p style="font-size: 0.9rem; color: #4a5568;">Garim-Eye가 미세한 떨림을 감지하고 <strong>DANGER 경고</strong>를 띄웁니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 19: System Demo -->
+        <section id="demo" class="slide-section" style="display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding-bottom: 2rem; justify-content: center;">
+            <div class="section-header">
+                <h3 class="section-title">시스템 시연</h3>
+                <div class="section-subtitle">Real-time Attack & Defense Scenario</div>
+            </div>
+
+            <div class="clay-card" style="flex: 1; width: 100%; min-height: 0; text-align: center; overflow: hidden; padding: 0; background: #000; display: flex; align-items: center; justify-content: center;">
+                <video controls style="width: 100%; height: 100%; object-fit: contain;">
+                    <source src="demo.mp4" type="video/mp4">
+                    <p style="color: white; padding: 2rem;">
+                        브라우저가 비디오 재생을 지원하지 않습니다.<br>
+                        'garim_landing' 폴더에 <strong>demo.mp4</strong> 파일을 넣어주세요.
+                    </p>
+                </video>
+            </div>
+        </section>
+
+        <!-- Slide 7: Differentiation -->
+        <section id="differentiation" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">차별점 및 경쟁력</h2>
+                <div class="section-subtitle">Different Targets, Different Approaches</div>
+            </div>
+
+            <div class="clay-card" style="margin-bottom: 2rem;">
+                <div class="callout" style="border-left-color: var(--accent-green); background: #f0fff4;">
+                    <strong>📢 우리의 미션:</strong>
+                    "무거운 고성능 탐지기도 중요하지만, <strong>우리는 당장 내 가족의 스마트폰을 지키는 가벼운 '방패'</strong>가 되고자 합니다."
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; box-shadow: var(--clay-shadow-out);">
+                <thead style="background: var(--accent-blue); color: white;">
+                    <tr>
+                        <th style="padding: 1rem;">비교 항목</th>
+                        <th style="padding: 1rem;">Other Server-based Solutions</th>
+                        <th style="padding: 1rem;">Garim Project (Mobile)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 1rem; font-weight: bold; text-align: center;">탐지 정확도 (Precision)</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: bold; color: #2d3748;">96% (High)</td>
+                        <td style="padding: 1rem; text-align: center; color: #718096;">88% (Trade-off)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 1rem; font-weight: bold; text-align: center;">접근성 (Accessibility)</td>
+                        <td style="padding: 1rem; text-align: center;">고성능 PC/서버 필수</td>
+                        <td style="padding: 1rem; text-align: center; color: var(--accent-blue); font-weight: bold;">모든 스마트폰에서 즉시 실행</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 1rem; font-weight: bold; text-align: center;">개인정보 보호 (Privacy)</td>
+                        <td style="padding: 1rem; text-align: center;">서버 업로드 필수 (유출 위험)</td>
+                        <td style="padding: 1rem; text-align: center; color: var(--accent-green); font-weight: bold;">완전 차단 (데이터가 폰 밖으로나가지 않음)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 1rem; font-weight: bold; text-align: center;">모델 효율성 (Efficiency)</td>
+                        <td style="padding: 1rem; text-align: center;">Heavy (고비용 GPU 연산)</td>
+                        <td style="padding: 1rem; text-align: center; color: var(--accent-blue); font-weight: bold;">Ultra-Light (MobileNetV2 경량화)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; font-weight: bold; text-align: center;">타켓 환경</td>
+                        <td style="padding: 1rem; text-align: center;">고화질 영상 원본</td>
+                        <td style="padding: 1rem; text-align: center; color: var(--accent-blue); font-weight: bold;">저화질 스트리밍 (Real-world)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+        <!-- Slide 20: Business Model 1 - Strategy -->
+        <section id="business-1" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">수익화 전략 (Revenue Strategy)</h2>
+                <div class="section-subtitle">지속 가능한 보안 생태계를 위한 투 트랙 전략</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="clay-card">
+                    <h3 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.4rem;">🏢 B2B: Garim Guard API</h3>
+                    <p style="margin-bottom: 1.5rem; color: #4a5568; font-size: 1.1rem; line-height: 1.6;">
+                        영상 통화 기능을 가진 서비스 업체(데이팅 앱, 메신저 등)에 <strong>SDK 형태의 보안 모듈</strong>을 공급합니다.
+                    </p>
+                    <ul class="spec-list" style="font-size: 1.05rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>Target:</strong> 데이팅 앱, 화상 영어/과외 플랫폼, 랜덤 채팅</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Model:</strong> API Call 당 과금 (Usage-based Pricing)</li>
+                        <li><strong>Value:</strong> 플랫폼의 신뢰도 상승 및 허위 유저(Bot) 차단</li>
+                    </ul>
+                </div>
+                <div class="clay-card">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.4rem;">👤 B2C: 인플루언서 보호 (Influencer Protection)</h3>
+                    <p style="margin-bottom: 1.5rem; color: #4a5568; font-size: 1.1rem; line-height: 1.6;">
+                        이미지와 영상이 공개된 <strong>인플루언서 및 크리에이터</strong>를 위한 능동적 딥페이크 탐지 및 디지털 저작권 보호 서비스.
+                    </p>
+                    <ul class="spec-list" style="font-size: 1.05rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>24/7 Monitoring:</strong> SNS, 커뮤니티, 성인 사이트 내 불법 합성물 실시간 탐지</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Auto-Takedown:</strong> 채증 자료 자동 생성 및 플랫폼 신고/삭제 요청 자동화</li>
+                        <li><strong>Verified Badge:</strong> 'Garim Protected' 안심 인증 마크 제공</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 21: Roadmap (Moved Up) -->
+        <section id="roadmap" class="slide-section">
+            <div class="section-header">
+                <h2 class="section-title">향후 로드맵 (Future Roadmap)</h2>
+                <div class="section-subtitle">영상 딥페이크를 넘어, 종합 보안 솔루션으로 진화합니다.</div>
+            </div>
+
+            <div class="grid-3">
+                <div class="clay-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🎤</div>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 1rem;">Audio Deepfake</h4>
+                    <p style="font-size: 1.1rem; color: #718096; margin-top: 0.5rem; line-height: 1.6;">
+                        목소리 변조(Voice Cloning) 탐지 기술 통합. 영상과 음성을 교차 검증하여 정확도 99% 달성.
+                    </p>
+                </div>
+                <div class="clay-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">☁️</div>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 1rem;">LVM Hybrid Cloud</h4>
+                    <p style="font-size: 1.1rem; color: #718096; margin-top: 0.5rem; line-height: 1.6;">
+                        온디바이스 판단이 불확실할 경우(Gray Zone), 선택적으로 클라우드 거대 모델(LVM)에 정밀 분석 요청.
+                    </p>
+                </div>
+                <div class="clay-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🌏</div>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 1rem;">Global Expansion</h4>
+                    <p style="font-size: 1.1rem; color: #718096; margin-top: 0.5rem; line-height: 1.6;">
+                        영어/일본어권 서비스 런칭. 글로벌 데이팅 앱 시장(Tinder, Bumble) 파트너십 추진.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Copied Graph from Business-2, Resized -->
+            <div class="clay-card" style="margin-top: 1.5rem; padding: 1.5rem; flex: 1; display: flex; align-items: center; justify-content: center;">
+                <div style="display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 250px; position: relative;">
+                    <!-- Grid Lines -->
+                    <div style="position: absolute; width: 100%; top: 20%; border-top: 1px dashed #e2e8f0;"></div>
+                    <div style="position: absolute; width: 100%; top: 50%; border-top: 1px dashed #e2e8f0;"></div>
+                    <div style="position: absolute; width: 100%; top: 80%; border-top: 1px dashed #e2e8f0;"></div>
+
+                    <!-- Year 1 -->
+                    <div style="text-align: center; width: 15%;">
+                        <div style="height: 30px; background: #cbd5e0; border-radius: 8px 8px 0 0; margin-bottom: 5px;"></div>
+                        <span style="font-weight: bold; color: #718096; font-size: 0.9rem;">1년차</span>
+                        <div style="font-size: 0.75rem; color: #a0aec0;">B2B(MVP) 출시</div>
+                    </div>
+
+                    <!-- Year 2 -->
+                    <div style="text-align: center; width: 15%;">
+                        <div style="height: 75px; background: #63b3ed; border-radius: 8px 8px 0 0; margin-bottom: 5px;"></div>
+                        <span style="font-weight: bold; color: #2b6cb0; font-size: 0.9rem;">2년차</span>
+                        <div style="font-size: 0.75rem; color: #a0aec0;">B2B 확장</div>
+                    </div>
+
+                    <!-- Year 3 -->
+                    <div style="text-align: center; width: 15%;">
+                        <div style="height: 125px; background: #805ad5; border-radius: 8px 8px 0 0; margin-bottom: 5px; position: relative;">
+                             <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: white; padding: 2px 6px; border-radius: 8px; font-weight: bold; color: #2f855a; font-size: 0.7rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">BEP 달성</div>
+                        </div>
+                        <span style="font-weight: bold; color: #553c9a; font-size: 0.9rem;">3년차</span>
+                        <div style="font-size: 0.75rem; color: #a0aec0;">B2C 출시</div>
+                    </div>
+
+                    <!-- Year 4 -->
+                    <div style="text-align: center; width: 15%;">
+                        <div style="height: 200px; background: linear-gradient(to top, #48bb78, #38a169); border-radius: 8px 8px 0 0; margin-bottom: 5px;"></div>
+                        <span style="font-weight: bold; color: #22543d; font-size: 0.9rem;">4년차</span>
+                        <div style="font-size: 0.75rem; color: #a0aec0;">Global 확장</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 22: Business Model 2 - Profit Projection (Moved Down) -->
+        <!-- REMOVED -->
+
+        <!-- Slide 23: Thank You -->
+        <section id="thankyou" class="slide-section" style="justify-content: center; text-align: center;">
+            <div class="section-header">
+                <h1 style="font-size: 3.5rem; background: linear-gradient(135deg, #4299e1 0%, #805ad5 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">Thank You</h1>
+                <p style="font-size: 1.5rem; color: #4a5568;">가려낼수록 선명해지는 진실, 가릴수록 안전해지는 대화</p>
+            </div>
+            
+            <div style="margin-top: 3rem; display: flex; justify-content: center; gap: 2rem;">
+                <div style="text-align: left;">
+                    <div style="font-weight: bold; color: #2d3748; margin-bottom: 0.5rem;">Contact Us</div>
+                    <div style="color: #718096;">team.garim@gmail.com</div>
+                    <div style="color: #718096;">github.com/Start-Garim</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.slide-section');
+    
+    // Initialize: Show first section
+    if (sections.length > 0) {
+        sections[0].classList.add('active');
+        if (navLinks.length > 0) {
+            navLinks[0].classList.add('active');
+        }
+    }
+    
+    // Navigation link click handler
+    navLinks.forEach((link, index) => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetSection = document.getElementById(targetId);
+            
+            if (targetSection) {
+                // Remove active class from all sections
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Remove active class from all nav links
+                navLinks.forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                
+                // Add active class to target section and nav link
+                targetSection.classList.add('active');
+                this.classList.add('active');
+            }
+        });
+    });
+    
+    // Auto-scale content to fit within viewport
+    function scaleSlideContent() {
+        sections.forEach(section => {
+            const header = section.querySelector('.section-header');
+            const content = Array.from(section.children).filter(el => el !== header);
+            
+            if (header && content.length > 0) {
+                // Reset any previous scaling
+                content.forEach(el => {
+                    el.style.transform = 'scale(1)';
+                });
+                
+                // Calculate available height
+                const viewportHeight = window.innerHeight;
+                const padding = 64; // 2rem top + 2rem bottom
+                const headerHeight = header.offsetHeight + 32; // header + margin-bottom
+                const availableHeight = viewportHeight - padding - headerHeight;
+                
+                // Get actual content height
+                let totalContentHeight = 0;
+                content.forEach(el => {
+                    totalContentHeight += el.offsetHeight;
+                });
+                
+                // Apply scaling if content is too tall
+                if (totalContentHeight > availableHeight) {
+                    const scale = availableHeight / totalContentHeight;
+                    content.forEach(el => {
+                        el.style.transform = `scale(${scale})`;
+                    });
+                }
+            }
+        });
+    }
+    
+    // Run scaling on initialization and window resize
+    scaleSlideContent();
+    window.addEventListener('resize', scaleSlideContent);
+    
+    // Also scale when slide changes
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            setTimeout(scaleSlideContent, 50);
+        });
+    });
+    
+    // Keyboard navigation (Arrow keys)
+    document.addEventListener('keydown', function(e) {
+        const activeSection = document.querySelector('.slide-section.active');
+        if (!activeSection) return;
+        
+        const activeSectionIndex = Array.from(sections).indexOf(activeSection);
+        
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            // Next slide
+            if (activeSectionIndex < sections.length - 1) {
+                navLinks[activeSectionIndex + 1].click();
+            }
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            // Previous slide
+            if (activeSectionIndex > 0) {
+                navLinks[activeSectionIndex - 1].click();
+            }
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+의 의 
