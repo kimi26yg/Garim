@@ -1,4 +1,4 @@
-# Garim Eye v2
+# Garim Eye
 
 **Real-time Deepfake Detection & Protection System**
 
