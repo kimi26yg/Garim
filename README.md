@@ -4,7 +4,9 @@ Deepfake technology can now swap a person's face onto a live video call in real 
 
 The system works end-to-end: one device runs the **attacker dashboard** (injecting a deepfake video stream via WebRTC), while the other device runs the **detector app** — analyzing every incoming frame on-device with a hybrid CNN + FFT inference engine and surfacing a real-time trust score to the user.
 
-/Users/windaro/flutter/garim/Garim_demo.mp4
+
+https://github.com/user-attachments/assets/fad19c28-c04d-492e-bca4-92dea8ecfe3c
+
 
 
 ---
