@@ -4,16 +4,15 @@ Deepfake technology can now swap a person's face onto a live video call in real 
 
 The system works end-to-end: one device runs the **attacker dashboard** (injecting a deepfake video stream via WebRTC), while the other device runs the **detector app** — analyzing every incoming frame on-device with a hybrid CNN + FFT inference engine and surfacing a real-time trust score to the user.
 
-https://github.com/user-attachments/assets/placeholder-replace-with-uploaded-demo
+/Users/windaro/flutter/garim/Garim_demo.mp4
 
-> Upload `garim_landing/demo.mp4` via GitHub web editor to replace the link above.
 
 ---
 
 ## System Architecture
 
 ```
-┌─────────────────────┐        WebRTC         ┌─────────────────────┐
+┌─────────────────────┐        WebRTC          ┌─────────────────────┐
 │   garim_attack      │ ─────────────────────► │   garim_eye         │
 │  (Attacker Dashboard│        via             │  (Detector App)     │
 │   Flutter Web)      │  Signaling Server      │  Flutter iOS/Android│
@@ -98,7 +97,6 @@ The ONNX model files (`inswapper_128.onnx`, `inswapper_128_fp16.onnx`) are exclu
 딥페이크 기술은 이제 실시간 영상 통화에서 상대방의 얼굴을 즉시 합성할 수 있는 수준에 도달했습니다. 지인, 동료, 권위 있는 인물 — 눈치채기 전에 누구든 위장할 수 있습니다. 기존 보안 도구는 이 공격 벡터를 막지 못합니다. **Garim**은 이 공백을 메우기 위해 만들어졌습니다.
 
 시스템은 엔드투엔드로 동작합니다. 한 쪽 기기는 **공격자 대시보드**를 실행해 WebRTC로 딥페이크 영상 스트림을 주입하고, 반대쪽 기기는 **탐지 앱**을 실행해 수신된 모든 프레임을 온디바이스 CNN + FFT 추론 엔진으로 분석하고 실시간 신뢰 점수를 사용자에게 표시합니다.
-
 ## 시스템 구성
 
 | 컴포넌트 | 스택 | 역할 |
