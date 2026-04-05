@@ -1,0 +1,33 @@
+# Flutter
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+
+# iOS/macOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/macos/Pods/
+**/*.xcworkspace
+**/*.xcuserdata
+**/.idea/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.env
+**/venv/
+**/.venv/
+
+# Node
+**/node_modules/
+
+# Large model files
+garim_attack_server/model/*.onnx
+
+# OS
+.DS_Store
