@@ -1,0 +1,154 @@
+/* =========================================
+   Page-Specific Overrides (Optimization)
+   ========================================= */
+
+/* 1. Pages to Enlarge (Make content larger) */
+
+#team .clay-card {
+    padding: 3.5rem !important;
+}
+#team .section-header {
+    margin-bottom: 3.5rem !important;
+}
+#team .section-title {
+    font-size: 3.5rem !important;
+}
+#team .grid-2 {
+    gap: 3rem !important;
+}
+#team h4 {
+    font-size: 1.8rem !important;
+}
+#team p {
+    font-size: 1.3rem !important;
+}
+
+#brand .clay-card {
+    padding: 4rem !important;
+}
+#brand .section-title {
+    font-size: 3.8rem !important;
+}
+#brand h3 {
+    font-size: 3rem !important;
+}
+#brand p {
+    font-size: 1.5rem !important;
+    line-height: 2 !important;
+}
+
+#architecture .clay-card {
+    padding: 3rem !important;
+}
+#architecture .section-title {
+    font-size: 3.2rem !important;
+}
+#architecture .grid-2 {
+    gap: 2rem !important;
+}
+#architecture h4 {
+    font-size: 1.6rem !important;
+}
+#architecture p {
+    font-size: 1.2rem !important;
+}
+
+
+/* 2. Pages to Fix Overflow (Make content smaller/compact) */
+
+#problem-cases .section-title {
+    font-size: 2.5rem !important;
+}
+#problem-cases .clay-card {
+    padding: 1.5rem !important;
+}
+#problem-cases h3 {
+    font-size: 1.8rem !important;
+    margin-bottom: 0.8rem !important;
+}
+#problem-cases h4 {
+    font-size: 1.2rem !important;
+    margin-bottom: 0.5rem !important;
+}
+#problem-cases p {
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
+}
+#problem-cases .grid-2 {
+    gap: 1rem !important;
+}
+
+#market .clay-card {
+    padding: 1rem !important;
+}
+#market .section-title {
+    font-size: 2.2rem !important;
+}
+#market table th, 
+#market table td {
+    padding: 0.5rem !important;
+    font-size: 0.85rem !important;
+}
+
+#fft-2 .clay-card {
+    padding: 1.2rem !important;
+}
+#fft-2 .section-title {
+    font-size: 2.2rem !important;
+}
+#fft-2 h3, #fft-2 h4 {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+#fft-2 p, #fft-2 ul li {
+    font-size: 0.9rem !important;
+    line-height: 1.4 !important;
+}
+#fft-2 .grid-2 {
+    gap: 1rem !important;
+}
+
+
+/* 3. Pages to Fill Empty Space (Enlarge & Layout) */
+
+#model-story .clay-card {
+    padding: 4rem !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 60vh;
+}
+#model-story .section-title {
+    font-size: 3.5rem !important;
+}
+#model-story h3 {
+    font-size: 2.5rem !important;
+}
+#model-story p {
+    font-size: 1.6rem !important;
+    line-height: 2 !important;
+}
+#model-story .grid-2 {
+    gap: 4rem !important;
+}
+
+#demo .clay-card {
+    padding: 4rem !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 60vh;
+}
+#demo .section-title {
+    font-size: 4rem !important;
+}
+#demo .feature-badge {
+    font-size: 1.5rem !important;
+    padding: 1rem 2rem !important;
+}
+#demo h3 {
+    font-size: 3rem !important;
+}
+#demo p {
+    font-size: 1.8rem !important;
+}

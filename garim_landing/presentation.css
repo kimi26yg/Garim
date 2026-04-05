@@ -1,0 +1,578 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap");
+
+:root {
+  --bg-color: #f0f4f8;
+  --text-color: #2d3748;
+  --heading-color: #1a202c;
+  --clay-bg: #e6eef6;
+  --clay-shadow-out: 12px 12px 24px #c2c9d1, -12px -12px 24px #ffffff;
+  --clay-shadow-in: inset 6px 6px 12px #c2c9d1, inset -6px -6px 12px #ffffff;
+  --accent-blue: #3b82f6;
+  --accent-red: #ef4444;
+  --accent-green: #10b981;
+  --accent-purple: #8b5cf6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Noto Sans KR", "Outfit", sans-serif; /* Priority to Korean font */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  overflow: hidden; /* Disable all scrolling */
+}
+
+/* Layout - Presentation Mode */
+.app-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+  background-color: var(--bg-color);
+  padding: 2rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.02);
+}
+
+.logo-area {
+  margin-bottom: 3rem;
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--accent-blue);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0;
+}
+
+.nav-item {
+  margin-bottom: 1rem;
+}
+
+.nav-link {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: translateX(5px);
+}
+
+.nav-link.active {
+  background-color: var(--clay-bg);
+  box-shadow: var(--clay-shadow-out);
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+/* Group Header in Sidebar */
+.nav-group {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 16px;
+  margin-bottom: 0.5rem;
+}
+
+/* Main Content Area - Fullscreen Slide Container */
+.content-area {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Slide Section - Each page fills entire viewport */
+.slide-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0; /* Better constraint than width: 100% for absolute positioning */
+  height: 100vh;
+  display: none; /* Hidden by default */
+  opacity: 0;
+  flex-direction: column;
+  padding: 2rem 2rem; /* Reduced from 3rem to 2rem horizontal padding */
+  overflow: hidden; /* No scrolling allowed */
+  transition: opacity 0.3s ease-in-out;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+/* Active slide - visible */
+.slide-section.active {
+  display: flex;
+  opacity: 1;
+  z-index: 10;
+}
+
+.section-header {
+  flex-shrink: 0; /* Keep header at top */
+  margin-bottom: 2rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+/* Content wrapper for auto-scaling */
+.slide-section > *:not(.section-header) {
+  transform-origin: top center;
+  transition: transform 0.2s ease;
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 6px;
+  background: var(--accent-blue);
+  border-radius: 4px;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--heading-color);
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+/* Clay Components */
+.clay-card {
+  background-color: var(--clay-bg);
+  border-radius: 24px;
+  box-shadow: var(--clay-shadow-out);
+  padding: 2.5rem;
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.clay-card:hover {
+  transform: translateY(-5px);
+}
+
+.clay-card.dark {
+  background-color: #2d3748;
+  color: white;
+  box-shadow:
+    6px 6px 16px rgba(26, 32, 44, 0.6),
+    -6px -6px 16px rgba(74, 85, 104, 0.5);
+  border: none;
+}
+.clay-card.dark h3,
+.clay-card.dark p {
+  color: white;
+}
+
+/* Grid Layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  } /* Mobile menu needed instead */
+  .content-area {
+    padding: 2rem;
+  }
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Data Visualization / Diagrams */
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 2rem;
+  border-radius: 20px;
+  margin: 2rem 0;
+}
+
+.flow-step {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow:
+    var(--clay-shadow-out),
+    inset 0 0 0 1px var(--accent-blue);
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.flow-arrow {
+  flex-grow: 1;
+  height: 2px;
+  background: #cbd5e0;
+  margin: 0 1rem;
+  position: relative;
+}
+.flow-arrow::after {
+  content: "▶";
+  position: absolute;
+  right: -5px;
+  top: -8px;
+  color: #cbd5e0;
+  font-size: 0.8rem;
+}
+
+/* Feature Badge */
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 50px;
+  background: var(--bg-color);
+  box-shadow: var(--clay-shadow-in);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0.5rem 0.5rem 0.5rem 0;
+}
+.feature-badge.red {
+  color: var(--accent-red);
+  box-shadow:
+    inset 4px 4px 8px #ffdede,
+    inset -4px -4px 8px white;
+}
+.feature-badge.blue {
+  color: var(--accent-blue);
+  box-shadow:
+    inset 4px 4px 8px #dbeafe,
+    inset -4px -4px 8px white;
+}
+
+/* Callout Box */
+.callout {
+  padding: 1.5rem;
+  border-left: 4px solid var(--accent-purple);
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 0 12px 12px 0;
+  margin: 1.5rem 0;
+}
+
+/* Typography Utilities */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-blue), #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text-red {
+  color: var(--accent-red);
+}
+.text-green {
+  color: var(--accent-green);
+}
+.text-blue {
+  color: var(--accent-blue);
+}
+
+code {
+  background: #2d3748;
+  color: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+/* =========================================
+   Page-Specific Overrides (Optimization)
+   ========================================= */
+
+/* 1. Pages to Enlarge (Make content larger) */
+
+#team .clay-card {
+  padding: 3.5rem !important;
+}
+#team .section-header {
+  margin-bottom: 3.5rem !important;
+}
+/* Enlarged Team Section - Full Screen & Centered Content (Overflow Fixed) */
+#team > .clay-card {
+  padding: 2.5rem 2rem !important; /* Reduced horizontal padding */
+  min-height: 80vh !important; /* Slightly reduced to prevent vertical overflow */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+#team .section-header {
+  margin-bottom: 1.5rem !important;
+  flex-shrink: 0 !important;
+}
+#team .section-title {
+
+}
+#team .grid-2 {
+  gap: 1.5rem !important; /* Significantly reduced to prevent overflow */
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+/* Inner cards scaling */
+#team .grid-2 .clay-card {
+  padding: 2rem 1.5rem !important; /* Reduced padding */
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+}
+#team h4 {
+  font-size: 1.5rem !important;
+  margin-bottom: 0.8rem !important;
+}
+#team p {
+  font-size: 1.15rem !important;
+  line-height: 1.5 !important;
+}
+
+#brand .clay-card {
+  padding: 4rem !important;
+}
+#brand .section-title {
+
+}
+#brand h3 {
+  font-size: 3rem !important;
+}
+#brand p {
+  font-size: 1.5rem !important;
+  line-height: 2 !important;
+}
+
+/* Enlarged Architecture Section - No Background Box */
+#architecture > div:nth-of-type(2) {
+  padding: 0 !important;
+  min-height: 80vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+#architecture .section-title {
+  margin-bottom: 1rem !important; /* Reduced spacing between Title and Subtitle */
+}
+#architecture .section-header {
+  margin-bottom: 5rem !important; /* Push boxes down significantly */
+}
+/* Flow Container Gap */
+#architecture > div:nth-of-type(2) > div {
+  gap: 2rem !important;
+}
+/* Inner Cards (Step Items) */
+#architecture .clay-card {
+  padding: 2rem 2.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+}
+/* Step Number Circle Override */
+#architecture .clay-card > div > div:first-child {
+  width: 60px !important;
+  height: 60px !important;
+  font-size: 1.6rem !important;
+}
+/* Titles & Text */
+#architecture h4 {
+  font-size: 1.7rem !important;
+  margin-bottom: 0.8rem !important;
+}
+#architecture p,
+#architecture li {
+  font-size: 1.25rem !important;
+  line-height: 1.6 !important;
+}
+#architecture strong {
+  font-size: 1.3rem !important;
+}
+#architecture .grid-2 {
+  gap: 2rem !important;
+}
+
+/* 2. Pages to Fix Overflow (Make content smaller/compact) */
+
+#problem-cases .section-title {
+
+}
+/* Parent Wrapper (Dark Card) - Target the first content card specifically */
+#problem-cases > .clay-card:nth-of-type(2) {
+  padding: 2.5rem !important;
+  background: linear-gradient(145deg, #2d3748, #1a202c) !important;
+  color: white !important;
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Child Cards inside Grid */
+#problem-cases .grid-2 .clay-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
+  padding: 1.5rem !important;
+  color: #e2e8f0 !important;
+}
+
+#problem-cases h3 {
+  font-size: 1.8rem !important;
+  margin-bottom: 2rem !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+#problem-cases h4 {
+  font-size: 1.3rem !important;
+  margin-bottom: 0.5rem !important;
+  color: #feb2b2 !important; /* Soft Red */
+}
+#problem-cases p {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  color: #cbd5e0 !important;
+}
+#problem-cases .grid-2 {
+  gap: 1.5rem !important;
+}
+
+#market .clay-card {
+  padding: 1rem !important;
+}
+#market .section-title {
+
+}
+#market table th,
+#market table td {
+  padding: 0.5rem !important;
+  font-size: 0.85rem !important;
+}
+
+#fft-2 .clay-card {
+  padding: 1.2rem !important;
+}
+
+#fft-2 h3,
+#fft-2 h4 {
+  font-size: 1.1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+#fft-2 p,
+#fft-2 ul li {
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+}
+#fft-2 .grid-2 {
+  gap: 1rem !important;
+}
+
+/* 3. Pages to Fill Empty Space (Enlarge & Layout) */
+
+#model-story .clay-card {
+  padding: 4rem !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+#model-story h3 {
+  font-size: 2.5rem !important;
+}
+#model-story p {
+  font-size: 1.6rem !important;
+  line-height: 2 !important;
+}
+#model-story .grid-2 {
+  gap: 4rem !important;
+}
+
+#demo .clay-card {
+  padding: 4rem !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+#demo .feature-badge {
+  font-size: 1.5rem !important;
+  padding: 1rem 2rem !important;
+}
+#demo h3 {
+  font-size: 3rem !important;
+}
+#demo p {
+  font-size: 1.8rem !important;
+}
+
+/* FFT Pages 3 & 4 (Enlarged) */
+#fft-3 .clay-card,
+#fft-4 .clay-card {
+  padding: 3.5rem !important;
+}
+
+#fft-3 h3,
+#fft-4 h3 {
+  font-size: 2.2rem !important;
+}
+#fft-3 h4,
+#fft-4 h4 {
+  font-size: 1.6rem !important;
+}
+#fft-3 p,
+#fft-4 p {
+  font-size: 1.4rem !important;
+  line-height: 1.8 !important;
+}
+#fft-4 .grid-2 {
+  gap: 3rem !important;
+}
