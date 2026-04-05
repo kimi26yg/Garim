@@ -1,0 +1,58 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '16.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  
+  # [핵심 수정] LSTM 등 복잡한 모델을 돌리기 위한 Flex Delegate 추가
+  # 기존 'TensorFlowLiteC' 대신 아래 줄을 사용해야 합니다.
+  pod 'TensorFlowLiteSelectTfOps', '2.12.0' 
+  
+  # Note: libyuv is already included in WebRTC framework
+  # We'll use WebRTC's built-in I420ToARGB function
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+# [핵심 수정] 이 부분을 통째로 복사해서 덮어쓰세요!
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    
+    target.build_configurations.each do |config|
+      # 1. iOS 배포 타겟 고정
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      
+      # 3. [에러 해결 핵심] 시뮬레이터 아키텍처 충돌 강제 통일
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    end
+  end
+end

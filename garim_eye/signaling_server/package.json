@@ -1,0 +1,12 @@
+{
+  "name": "signaling-server",
+  "version": "1.0.0",
+  "description": "WebRTC Signaling Server for Garim Eye",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.2"
+  }
+}

@@ -1,0 +1,461 @@
+import Foundation
+import CoreML
+import Vision
+import UIKit
+import Flutter
+
+@available(iOS 14.0, *)
+class DeepfakePredictor {
+    
+    // --- Model & Requests ---
+    private var model: DeepfakeDetector_v3?
+    private var faceDetectionRequest: VNDetectFaceRectanglesRequest?
+    
+    // --- State ---
+    // Buffer for ready-to-infer [1, 224, 224, 3] arrays
+    // Actually, we store the pixel data buffer part to construct the batch later, 
+    // OR we convert to MLMultiArray piece by piece. 
+    // To be efficient and safe, let's store [Float32] arrays or Data. 
+    // Storing pre-normalized [RGB] float arrays is good. (224*224*3 floats/frame)
+    // Frame Buffer (20 frames for LSTM)
+    private var frameBuffer: [[Float]] = []
+    
+    // Serial queue for thread-safe buffer access
+    private let bufferQueue = DispatchQueue(label: "com.garim.eye.frameBuffer")
+    
+    private let targetWidth = 224
+    private let targetHeight = 224
+    
+    // Performance Statistics
+    private var frameCount = 0
+    private var totalLatency: Double = 0
+    private var lastStatsTime = CFAbsoluteTimeGetCurrent()
+    
+    init() {
+        // Load Model (Synchronous)
+        do {
+            let config = MLModelConfiguration()
+            config.computeUnits = .all  // GPU + Neural Engine
+            self.model = try DeepfakeDetector_v3(configuration: config)
+            print("✅ [CoreML] DeepfakeDetector_v3 loaded (Float32 model).")
+        } catch {
+            fatalError("Failed to load DeepfakeDetector_v3: \(error)")
+        }
+        
+        setupVision()
+    }
+    
+    private func setupVision() {
+        self.faceDetectionRequest = VNDetectFaceRectanglesRequest()
+        // No labels needed, just bounding box
+    }
+    
+    // MARK: - Native-First Pipeline: CVPixelBuffer Processing
+    
+    /// Process CVPixelBuffer directly from WebRTC (Native-First Pipeline)
+    /// This bypasses Method Channel overhead for better performance
+    func processPixelBuffer(_ pixelBuffer: CVPixelBuffer) -> [String: Any]? {
+        // 1. Convert CVPixelBuffer → CGImage
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let context = CIContext(options: nil)
+        
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+            print("🔴 [Predictor] Failed to convert CVPixelBuffer to CGImage")
+            return ["status": "error", "msg": "CVPixelBuffer conversion failed"]
+        }
+        
+        // 2. Face Detection
+        let detectStart = CFAbsoluteTimeGetCurrent()
+        
+        guard let request = self.faceDetectionRequest else {
+            return ["status": "error", "msg": "Face detection not initialized"]
+        }
+        
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        
+        do {
+            try handler.perform([request])
+        } catch {
+            print("🔴 [Predictor] Face detection error: \(error)")
+            return ["status": "error", "msg": "Face detection failed"]
+        }
+        
+        guard let observations = request.results as? [VNFaceObservation],
+              let face = observations.first else {
+            return ["status": "skipped", "reason": "No face detected"]
+        }
+        
+        let detectDuration = (CFAbsoluteTimeGetCurrent() - detectStart) * 1000
+        print("✅ [Predictor] Face detected: \(face.boundingBox)")
+        
+        // 3. Crop & Resize
+        let cropStart = CFAbsoluteTimeGetCurrent()
+        
+        let boundingBox = face.boundingBox
+        
+        // Convert Vision coords to Image coords
+        let w = boundingBox.width * CGFloat(cgImage.width)
+        let h = boundingBox.height * CGFloat(cgImage.height)
+        let x = boundingBox.origin.x * CGFloat(cgImage.width)
+        let y = (1 - boundingBox.origin.y - boundingBox.height) * CGFloat(cgImage.height)
+        
+        // Add padding
+        let padding: CGFloat = 0.2
+        let padW = w * padding
+        let padH = h * padding
+        
+        let cropRect = CGRect(
+            x: x - padW,
+            y: y - padH,
+            width: w + (padW * 2),
+            height: h + (padH * 2)
+        )
+        
+        // Safe crop
+        let imageRect = CGRect(x: 0, y: 0, width: CGFloat(cgImage.width), height: CGFloat(cgImage.height))
+        let strictCropRect = cropRect.intersection(imageRect)
+        
+        guard let croppedCG = cgImage.cropping(to: strictCropRect) else {
+            print("🔴 [Predictor] Crop failed")
+            return ["status": "skipped", "reason": "Crop failed"]
+        }
+        
+        // Resize to 224x224
+        guard let resizedCG = resizeImage(cgImage: croppedCG, 
+                                         targetSize: CGSize(width: targetWidth, height: targetHeight)) else {
+            print("🔴 [Predictor] Resize failed")
+            return ["status": "skipped", "reason": "Resize failed"]
+        }
+        
+        // Get normalized pixels
+        guard let pixelsFloat = getNormalizedPixels(cgImage: resizedCG) else {
+            print("🔴 [Predictor] Pixel normalization failed")
+            return ["status": "skipped", "reason": "Normalization failed"]
+        }
+        
+        let cropDuration = (CFAbsoluteTimeGetCurrent() - cropStart) * 1000
+        
+        // 4. Buffering (Thread-safe)
+        var currentCount = 0
+        bufferQueue.sync {
+            frameBuffer.append(pixelsFloat)
+            currentCount = frameBuffer.count
+            print("📊 [Predictor] Buffer: \(currentCount)/20 frames")
+        }
+        
+        if currentCount < 20 {
+            return [
+                "status": "collecting",
+                "count": currentCount,
+                "detection_ms": detectDuration,
+                "cropping_ms": cropDuration
+            ]
+        }
+        
+        // 5. Inference
+        let inferStart = CFAbsoluteTimeGetCurrent()
+        
+        var bufferSnapshot: [[Float]] = []
+        bufferQueue.sync {
+            bufferSnapshot = frameBuffer
+            frameBuffer.removeAll()
+        }
+        
+        guard let predictionResult = runInference(frameData: bufferSnapshot) else {
+            print("🔴 [Predictor] Inference failed")
+            return ["status": "error", "msg": "Inference failed"]
+        }
+        
+        let inferDuration = (CFAbsoluteTimeGetCurrent() - inferStart) * 1000
+        
+        print("🎯 [Predictor] Inference complete: score=\(predictionResult)")
+        
+        return [
+            "status": "inference",
+            "score": predictionResult,
+            "detection_ms": detectDuration,
+            "cropping_ms": cropDuration,
+            "inference_ms": inferDuration
+        ]
+    }
+
+    /// Process a single raw frame from Flutter
+    /// Returns: Dictionary with status and metrics
+    func processFrame(imageData: FlutterStandardTypedData) -> [String: Any] {
+        let overallStart = CFAbsoluteTimeGetCurrent()
+        
+        // 1. Decode Image (Flutter Bytes -> UIImage)
+        guard let image = UIImage(data: imageData.data),
+              let cgImage = image.cgImage else {
+            return ["status": "error", "msg": "Image decode failed"]
+        }
+        
+        // 2. Face Detection (Vision)
+        let detectStart = CFAbsoluteTimeGetCurrent()
+        
+        let handler = VNImageRequestHandler(cgImage: cgImage, orientation: .up)
+        do {
+            try handler.perform([faceDetectionRequest!])
+        } catch {
+            return ["status": "error", "msg": "Face detection failed"]
+        }
+        
+        guard let observations = faceDetectionRequest?.results,
+              !observations.isEmpty else {
+            return ["status": "skipped", "reason": "no_face"]
+        }
+        
+        let face = observations.sorted(by: { 
+            ($0.boundingBox.width * $0.boundingBox.height) > 
+            ($1.boundingBox.width * $1.boundingBox.height) 
+        }).first!
+        
+        let detectDuration = (CFAbsoluteTimeGetCurrent() - detectStart) * 1000
+        
+        // 3. Cropping (CoreGraphics)
+        let cropStart = CFAbsoluteTimeGetCurrent()
+        
+        // Convert Vision Norm coords (0..1, origin bottom-left) to Image coords (origin top-left usually for UIKit, but CGImage is usually origin top-left too)
+        // WAIT: VNImageRequestHandler uses the orientation we passed.
+        // Vision BoundingBox is normalized 0.0-1.0 with origin at BOTTOM-LEFT.
+        // CGImage/UIKit origin is TOP-LEFT.
+        
+        let boundingBox = face.boundingBox
+        let w = boundingBox.width * CGFloat(cgImage.width)
+        let h = boundingBox.height * CGFloat(cgImage.height)
+        let x = boundingBox.origin.x * CGFloat(cgImage.width)
+        // Flip Y for CGImage (Top-Left 0,0)
+        let y = (1 - boundingBox.origin.y - boundingBox.height) * CGFloat(cgImage.height)
+        
+        // Add Padding (20%)
+        let padding: CGFloat = 0.2
+        let padW = w * padding
+        let padH = h * padding
+        
+        let cropRect = CGRect(
+             x: x - padW,
+             y: y - padH,
+             width: w + (padW * 2),
+             height: h + (padH * 2)
+        )
+        
+        // Safe Crop
+        let imageRect = CGRect(x: 0, y: 0, width: CGFloat(cgImage.width), height: CGFloat(cgImage.height))
+        let strictCropRect = cropRect.intersection(imageRect)
+        
+        guard let croppedCG = cgImage.cropping(to: strictCropRect) else {
+             print("🔴 [Predictor] Crop failed")
+             return ["status": "skipped", "reason": "crop_failed"]
+        }
+        
+        // Resize to 224x224
+        guard let resizedCG = resizeImage(cgImage: croppedCG, targetSize: CGSize(width: targetWidth, height: targetHeight)) else {
+            return ["status": "skipped", "reason": "resize_failed"]
+        }
+        
+        // Extract & Normalize
+        guard let pixelFloats = getNormalizedPixels(cgImage: resizedCG) else {
+             return ["status": "skipped", "reason": "pixel_extract_failed"]
+        }
+        
+        let cropDuration = (CFAbsoluteTimeGetCurrent() - cropStart) * 1000
+        
+        // 4. Buffering (Thread-Safe)
+        var currentCount = 0
+        bufferQueue.sync {
+            frameBuffer.append(pixelFloats)
+            currentCount = frameBuffer.count
+        }
+        
+        if currentCount < 20 {
+            return [
+                "status": "collecting",
+                "count": currentCount,
+                "detection_ms": detectDuration,
+                "cropping_ms": cropDuration
+            ]
+        }
+        
+        // 5. Inference (Full Batch)
+        let inferStart = CFAbsoluteTimeGetCurrent()
+        
+        // CRITICAL: Copy buffer snapshot to avoid concurrent access during inference
+        var bufferSnapshot: [[Float]] = []
+        bufferQueue.sync {
+            bufferSnapshot = frameBuffer
+            frameBuffer.removeAll() // Clear immediately for next batch
+        }
+        
+        guard let predictionResult = runInference(frameData: bufferSnapshot) else {
+             print("🔴 [Predictor] Inference failed")
+             return ["status": "error", "msg": "Inference Failed"]
+        }
+        
+        print("🎯 [Predictor] Inference complete: score=\(predictionResult)")
+        
+        let inferDuration = (CFAbsoluteTimeGetCurrent() - inferStart) * 1000
+        
+        return [
+            "status": "inference",
+            "score": predictionResult,
+            "detection_ms": detectDuration,
+            "cropping_ms": cropDuration,
+            "inference_ms": inferDuration
+        ]
+    }
+    
+    private func runInference(frameData: [[Float]]) -> Double? {
+        guard let model = self.model else { return nil }
+        
+        // Construct [1, 20, 224, 224, 3] Input
+        let batchShape: [NSNumber] = [1, 20, 224, 224, 3] as [NSNumber]
+        
+        guard let inputBatch = try? MLMultiArray(shape: batchShape, dataType: .float32) else { return nil }
+        
+        // Use raw dataPointer to bypass Swift type inference bugs in nested closure context
+        // Shape: [1, 20, 224, 224, 3] - channel-last layout
+        let dataPtr = UnsafeMutablePointer<Float32>(OpaquePointer(inputBatch.dataPointer))
+        
+        for t in 0..<20 {
+            guard t < frameData.count else { break }
+            let frameFloats = frameData[t]
+            
+            for y in 0..<224 {
+                for x in 0..<224 {
+                    let srcIdx = (y * 224 + x) * 3
+                    let destIdx = t * (224 * 224 * 3) + y * (224 * 3) + x * 3
+                    
+                    dataPtr[destIdx] = frameFloats[srcIdx]
+                    dataPtr[destIdx + 1] = frameFloats[srcIdx + 1]
+                    dataPtr[destIdx + 2] = frameFloats[srcIdx + 2]
+                }
+            }
+        }
+
+        
+        // Predict
+        do {
+             let inputName = model.model.modelDescription.inputDescriptionsByName.keys.first ?? "input_1"
+             let outputName = model.model.modelDescription.outputDescriptionsByName.keys.first ?? "Identity"
+            
+             let prediction = try model.model.prediction(from: MLDictionaryFeatureProvider(dictionary: [inputName: inputBatch]))
+             
+             if let outputFeature = prediction.featureValue(for: outputName),
+                let multiArray = outputFeature.multiArrayValue {
+                 
+                 // DEBUG: Inspect output structure
+                 print("🔍 [Debug] Output name: \(outputName)")
+                 print("🔍 [Debug] Output shape: \(multiArray.shape)")
+                 print("🔍 [Debug] Output strides: \(multiArray.strides)")
+                 print("🔍 [Debug] Output count: \(multiArray.count)")
+                 
+                 // Try multiple access patterns
+                 let ptr = UnsafeMutablePointer<Float>(OpaquePointer(multiArray.dataPointer))
+                 let rawValue = Double(ptr[0])
+                 print("🔍 [Debug] Raw value (dataPointer[0]): \(rawValue)")
+                 
+                 // Try direct index
+                 let directValue = multiArray[0].doubleValue
+                 print("🔍 [Debug] Direct value (multiArray[0]): \(directValue)")
+                 
+                 // Try with NSNumber array
+                 let arrayValue = multiArray[[0] as [NSNumber]].doubleValue
+                 print("🔍 [Debug] Array value (multiArray[[0]]): \(arrayValue)")
+                 
+                 return rawValue
+             }
+        } catch {
+            print("🔴 [Predictor] Inference Error: \(error)")
+        }
+        
+        return nil
+    }
+    
+    // --- Helpers ---
+    
+    private func resizeImage(cgImage: CGImage, targetSize: CGSize) -> CGImage? {
+        return autoreleasepool {
+            let width = Int(targetSize.width)
+            let height = Int(targetSize.height)
+            let bitsPerComponent = 8
+            let bytesPerRow = width * 4 // RGBA
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            
+            // Fix BitmapInfo for correct RGBA
+            let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+            
+            guard let context = CGContext(
+                data: nil,
+                width: width,
+                height: height,
+                bitsPerComponent: bitsPerComponent,
+                bytesPerRow: bytesPerRow,
+                space: colorSpace,
+                bitmapInfo: bitmapInfo
+            ) else { return nil }
+            
+            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+            return context.makeImage()
+        }
+    }
+    
+    private func getNormalizedPixels(cgImage: CGImage) -> [Float32]? {
+        return autoreleasepool {
+            let width = cgImage.width
+            let height = cgImage.height
+            let totalBytes = width * height * 4
+            
+            var pixelData = [UInt8](repeating: 0, count: totalBytes)
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            
+            // Fix BitmapInfo for correct RGBA
+            let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+            
+            guard let context = CGContext(
+                data: &pixelData,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: width * 4,
+                space: colorSpace,
+                bitmapInfo: bitmapInfo
+            ) else { return nil }
+            
+            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+            
+            // Convert to Float32 RGB [0..1]
+            var floats = [Float32](repeating: 0, count: width * height * 3)
+            
+            for i in 0..<(width * height) {
+                let offset = i * 4
+                floats[i*3]     = Float32(pixelData[offset]) / 255.0
+                floats[i*3 + 1] = Float32(pixelData[offset + 1]) / 255.0
+                floats[i*3 + 2] = Float32(pixelData[offset + 2]) / 255.0
+            }
+            
+            return floats
+        }
+    }
+    
+    // MARK: - Performance Statistics
+    
+    private func trackPerformance(latency: Double) {
+        frameCount += 1
+        totalLatency += latency
+        
+        let currentTime = CFAbsoluteTimeGetCurrent()
+        let elapsed = currentTime - lastStatsTime
+        
+        // Log stats every 5 seconds
+        if elapsed >= 5.0 {
+            let avgLatency = totalLatency / Double(frameCount)
+            let fps = Double(frameCount) / elapsed
+            print("📊 [Stats] Frames: \(frameCount), Avg Latency: \(Int(avgLatency))ms, FPS: \(String(format: "%.1f", fps))")
+            
+            // Reset counters
+            frameCount = 0
+            totalLatency = 0
+            lastStatsTime = currentTime
+        }
+    }
+}

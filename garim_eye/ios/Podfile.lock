@@ -1,0 +1,39 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_webrtc (1.2.0):
+    - Flutter
+    - WebRTC-SDK (= 137.7151.04)
+  - permission_handler_apple (9.3.0):
+    - Flutter
+  - TensorFlowLiteSelectTfOps (2.12.0)
+  - WebRTC-SDK (137.7151.04)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - TensorFlowLiteSelectTfOps (= 2.12.0)
+
+SPEC REPOS:
+  trunk:
+    - TensorFlowLiteSelectTfOps
+    - WebRTC-SDK
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_webrtc:
+    :path: ".symlinks/plugins/flutter_webrtc/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_webrtc: c3e21fc0dcd9d8eb246ae4d5256fcbeb2f5ecd22
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  TensorFlowLiteSelectTfOps: 6dc7ae68be5551b73503278950242a4940301432
+  WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
+
+PODFILE CHECKSUM: 6efbc63cf638fbd3e40da800e1e63b1053b7249c
+
+COCOAPODS: 1.16.2
